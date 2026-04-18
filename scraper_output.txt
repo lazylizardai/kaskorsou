@@ -1,0 +1,33 @@
+2026-04-18 01:37:51,111 [remax] INFO RE/MAX sale p0: 25 new
+2026-04-18 01:37:55,850 [remax] INFO RE/MAX sale p1: 0 new
+2026-04-18 01:38:00,255 [remax] INFO RE/MAX sale p2: 25 new
+2026-04-18 01:38:05,189 [remax] INFO RE/MAX sale p3: 25 new
+2026-04-18 01:38:09,069 [remax] INFO RE/MAX sale p4: 25 new
+2026-04-18 01:38:13,996 [remax] INFO RE/MAX sale p5: 25 new
+2026-04-18 01:38:18,697 [remax] INFO RE/MAX sale p6: 25 new
+2026-04-18 01:38:22,636 [remax] INFO RE/MAX sale p7: 21 new
+2026-04-18 01:38:27,076 [remax] INFO RE/MAX rent p0: 25 new
+2026-04-18 01:38:33,012 [remax] INFO RE/MAX rent p1: 0 new
+2026-04-18 01:38:36,468 [remax] INFO RE/MAX rent p2: 25 new
+2026-04-18 01:38:39,685 [remax] INFO RE/MAX rent p3: 2 new
+2026-04-18 01:38:45,103 [remax] INFO RE/MAX sale p0: 21 new
+2026-04-18 01:38:49,471 [remax] INFO RE/MAX rent p0: 16 new
+2026-04-18 01:38:49,474 [remax] INFO RE/MAX total: 260 listings
+2026-04-18 01:38:52,359 [httpx] INFO HTTP Request: POST https://tbfjlfnahdqfbnpszyyj.supabase.co/rest/v1/kas_listings?on_conflict=source_id%2Cexternal_id&columns=%22property_type%22%2C%22currency%22%2C%22last_seen_at%22%2C%22neighborhood%22%2C%22external_id%22%2C%22latitude%22%2C%22images%22%2C%22bathrooms%22%2C%22source_id%22%2C%22status%22%2C%22longitude%22%2C%22listing_type%22%2C%22description%22%2C%22title%22%2C%22area_sqm%22%2C%22price%22%2C%22bedrooms%22%2C%22url%22 "HTTP/2 200 OK"
+2026-04-18 01:38:52,641 [httpx] INFO HTTP Request: POST https://tbfjlfnahdqfbnpszyyj.supabase.co/rest/v1/kas_scrape_logs "HTTP/2 400 Bad Request"
+Scraping RE/MAX...
+Found: 260 listings
+Upserting to Supabase...
+Done: +260 new, ~0 updated
+Traceback (most recent call last):
+  File "C:\Users\peter\Desktop\KasKorsou-web\scraper\test_remax.py", line 23, in <module>
+    log_scrape_run(sb, "remax", datetime.now(timezone.utc),
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   len(listings), inserted, updated)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\peter\Desktop\KasKorsou-web\scraper\orchestrator.py", line 123, in log_scrape_run
+    }).execute()
+       ~~~~~~~^^
+  File "C:\Users\peter\AppData\Local\Programs\Python\Python313\Lib\site-packages\postgrest\_sync\request_builder.py", line 53, in execute
+    raise APIError(dict(json_obj))
+postgrest.exceptions.APIError: {'message': "Could not find the 'error_message' column of 'kas_scrape_logs' in the schema cache", 'code': 'PGRST204', 'hint': None, 'details': None}

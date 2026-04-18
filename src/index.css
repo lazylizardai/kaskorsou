@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ── KasKorsou Design System v2 — Compass-level ── */
+
+  /* Teal — primary (Curaçao zee) */
+  --color-teal-50:  #E6F2F4;
+  --color-teal-100: #CCE4E9;
+  --color-teal-200: #99CAD3;
+  --color-teal-300: #66AFBD;
+  --color-teal-400: #3394A7;
+  --color-teal-500: #006B7D;
+  --color-teal-600: #005664;
+  --color-teal-700: #00404B;
+  --color-teal-800: #002B32;
+  --color-teal-900: #001519;
+
+  /* Coral — accent */
+  --color-coral-50:  #FDF0EC;
+  --color-coral-100: #FAE0D8;
+  --color-coral-200: #F5C1B2;
+  --color-coral-300: #F0A28B;
+  --color-coral-400: #EB8364;
+  --color-coral-500: #E8672A;
+  --color-coral-600: #C4531E;
+  --color-coral-700: #9A3F16;
+  --color-coral-800: #702C0E;
+  --color-coral-900: #461B07;
+
+  /* Sand — warm neutrals */
+  --color-sand-50:  #FEFCF8;
+  --color-sand-100: #FBF8F2;
+  --color-sand-200: #F5F0E8;
+  --color-sand-300: #EDE5D6;
+  --color-sand-400: #DCCFB8;
+  --color-sand-500: #C4B49A;
+  --color-sand-600: #9E8F7A;
+  --color-sand-700: #756A5B;
+  --color-sand-800: #4D4539;
+  --color-sand-900: #262219;
+
+  /* Zinc — UI neutrals (no pure black) */
+  --color-zinc-50:  #FAFAFA;
+  --color-zinc-100: #F4F4F5;
+  --color-zinc-200: #E4E4E7;
+  --color-zinc-300: #D4D4D8;
+  --color-zinc-400: #A1A1AA;
+  --color-zinc-500: #71717A;
+  --color-zinc-600: #52525B;
+  --color-zinc-700: #3F3F46;
+  --color-zinc-800: #27272A;
+  --color-zinc-900: #18181B;
+  --color-zinc-950: #09090B;
+
+  /* Semantic */
+  --color-primary:        #006B7D;
+  --color-primary-hover:  #005664;
+  --color-accent:         #E8672A;
+  --color-background:     #FFFFFF;
+  --color-surface:        #FAFAFA;
+  --color-text:           #09090B;
+  --color-text-secondary: #71717A;
+  --color-border:         #E4E4E7;
+  --color-border-subtle:  #F4F4F5;
+
+  /* Typography */
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'Menlo', monospace;
+
+  /* Layout */
+  --spacing-nav:     72px;
+  --spacing-sidebar: 320px;
+
+  /* Shadows — tinted to bg */
+  --shadow-card:       0 1px 2px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-nav:        0 1px 0 rgba(0,0,0,0.06);
+  --shadow-float:      0 20px 40px -12px rgba(0,0,0,0.12);
+
+  /* Radius */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-text);
+    min-height: 100dvh;
+    line-height: 1.6;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* ── Leaflet map markers ── */
+.kas-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.kas-price-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  background: #09090B;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Geist', system-ui, sans-serif;
+  border-radius: 20px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+  border: 2px solid white;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: -0.01em;
+}
+
+.kas-price-tag:hover,
+.kas-price-tag.selected {
+  background: #006B7D;
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(0,107,125,0.35);
+}
+
+/* ── Leaflet overrides ── */
+.leaflet-container {
+  font-family: 'Geist', system-ui, sans-serif !important;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background: white !important;
+  color: #09090B !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-bottom: 1px solid #E4E4E7 !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #F4F4F5 !important;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #A1A1AA; }
+
+/* ✦✦ Leaflet cluster custom style ✦✦ */
+.kas-cluster {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #006B7D;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Geist', system-ui, sans-serif;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 3px 12px rgba(0,107,125,0.45);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.kas-cluster:hover {
+  transform: scale(1.12);
+}
+
+/* Override Leaflet cluster default backgrounds */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: transparent !important;
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: transparent !important;
+}

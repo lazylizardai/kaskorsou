@@ -1,0 +1,1 @@
+# KasKorsou scraper package

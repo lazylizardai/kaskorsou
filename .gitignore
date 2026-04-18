@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+scraper/__pycache__/
+scraper/scrapers/__pycache__/
+
+# Build artifacts & temp
+src.zip
+src-b64.txt
+scraper_output.txt
+scraper/fb_cookies.json
