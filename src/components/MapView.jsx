@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 const CURACAO_CENTER = [12.1696, -68.9900]
 const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
-const CLUSTER_ZOOM = 13
 
 const NB = {
   'jan thiel':      [12.0556, -68.8637],
@@ -55,7 +54,6 @@ function jitter(d) { return (Math.random() - 0.5) * d }
 function getCoords(listing) {
   if (listing.latitude && listing.longitude) {
     const lat = Number(listing.latitude), lng = Number(listing.longitude)
-    // Only use real coords if they're plausibly on the island
     if (lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX) {
       return [lat, lng]
     }
@@ -67,8 +65,16 @@ function getCoords(listing) {
   return null
 }
 
+function fmtPriceBadge(price, listingType) {
+  if (!price) return 'ANG –'
+  const n = Number(price)
+  if (listingType === 'rent') return `ANG ${Math.round(n).toLocaleString()}`
+  if (n >= 1000000) return `ANG ${(n / 1000000).toFixed(1)}M`
+  return `ANG ${(n / 1000).toFixed(0)}k`
+}
+
 function fmtPrice(price, type) {
-  if (!price) return '—'
+  if (!price) return '–'
   const n = Number(price)
   if (type === 'rent') return `ANG ${Math.round(n).toLocaleString()}/mnd`
   if (n >= 1000000) return `ANG ${(n / 1000000).toFixed(2)}M`
@@ -113,7 +119,7 @@ function buildPopupHTML(listing) {
       <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#374151;margin-bottom:12px">
         ${beds}${baths}${sqm}
       </div>
-      <button 
+      <button
         data-listing-id="${listing.id}"
         style="width:100%;padding:7px 12px;background:#09090b;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"
         onmouseover="this.style.background='#006B7D'"
@@ -123,16 +129,12 @@ function buildPopupHTML(listing) {
   `
 }
 
-// Simple teardrop pin SVG
-function makePinIcon(color = '#09090b', size = 28, selected = false) {
-  const s = selected ? size * 1.35 : size
-  const svg = `<svg width="${s}" height="${s * 1.3}" viewBox="0 0 30 39" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 24 15 24S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="${color}"/>
-    <circle cx="15" cy="15" r="6" fill="white" fill-opacity="0.9"/>
-  </svg>`
+// Price badge marker element
+function makePriceBadgeEl(price, listingType, isSelected) {
+  const label = fmtPriceBadge(price, listingType)
   const el = document.createElement('div')
-  el.style.cssText = `filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));cursor:pointer;`
-  el.innerHTML = svg
+  el.className = `kk-price-marker${isSelected ? ' selected' : ''}`
+  el.innerHTML = `<div class="kk-price-badge">${label}</div>`
   return el
 }
 
@@ -142,33 +144,7 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
   const markersRef = useRef([])
   const coordsRef = useRef({})
   const activePopupRef = useRef(null)
-  const [zoom, setZoom] = useState(11)
   const [ready, setReady] = useState(false)
-
-  // Buurt-clusters voor lage zoom
-  const clusters = useMemo(() => {
-    if (zoom >= CLUSTER_ZOOM) return []
-    const groups = {}
-    listings.forEach((l) => {
-      const key = (l.neighborhood || 'overig').toLowerCase().split(' ').slice(0, 2).join(' ')
-      if (!groups[key]) groups[key] = { key, items: [] }
-      groups[key].items.push(l)
-    })
-    return Object.values(groups).map((g) => {
-      let coords = null
-      for (const [k, c] of Object.entries(NB)) {
-        if (g.key.includes(k) || k.includes(g.key)) { coords = c; break }
-      }
-      if (!coords) {
-        const pts = g.items.filter(l => l.latitude && l.longitude)
-        if (pts.length) coords = [
-          pts.reduce((s, l) => s + Number(l.latitude), 0) / pts.length,
-          pts.reduce((s, l) => s + Number(l.longitude), 0) / pts.length,
-        ]
-      }
-      return { ...g, coords }
-    }).filter(g => g.coords)
-  }, [listings, zoom])
 
   // Init map
   useEffect(() => {
@@ -182,102 +158,67 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
       attribution: '©OpenStreetMap ©CARTO', subdomains: 'abcd', maxZoom: 19,
     }).addTo(map)
     L.control.zoom({ position: 'topright' }).addTo(map)
-    map.on('zoomend', () => setZoom(map.getZoom()))
     mapRef.current = map
     setReady(true)
     return () => { map.remove(); mapRef.current = null }
   }, [])
 
-  // Markers
+  // Render individual price badge markers (all zoom levels)
   useEffect(() => {
     if (!mapRef.current || !ready) return
+
+    // Clear existing markers + popup
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
     if (activePopupRef.current) { activePopupRef.current.remove(); activePopupRef.current = null }
 
-    if (zoom < CLUSTER_ZOOM) {
-      // Cluster bubbles per buurt
-      clusters.forEach(({ key, items, coords }) => {
-        const el = document.createElement('div')
-        el.style.cssText = `
-          background:#006B7D;color:white;padding:6px 13px;border-radius:20px;
-          font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;
-          box-shadow:0 2px 10px rgba(0,107,125,0.45);
-          border:2px solid rgba(255,255,255,0.6);
-          display:flex;align-items:center;gap:5px;white-space:nowrap;
-        `
-        const badge = document.createElement('span')
-        badge.style.cssText = `background:rgba(255,255,255,0.25);border-radius:8px;padding:1px 6px;font-size:11px;`
-        badge.textContent = items.length
-        const label = document.createElement('span')
-        label.textContent = key.charAt(0).toUpperCase() + key.slice(1)
-        el.appendChild(badge)
-        el.appendChild(label)
-        el.addEventListener('click', () => mapRef.current.setView(coords, CLUSTER_ZOOM))
-        const m = L.marker(coords, {
-          icon: L.divIcon({ html: el, className: '', iconAnchor: [40, 16] }),
-        }).addTo(mapRef.current)
-        markersRef.current.push(m)
+    listings.forEach((listing) => {
+      const coords = getCoords(listing)
+      if (!coords) return
+      coordsRef.current[listing.id] = coords
+
+      const isSelected = listing.id === selectedId
+      const el = makePriceBadgeEl(listing.price, listing.listing_type, isSelected)
+
+      // Click: open popup + notify parent
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (activePopupRef.current) { activePopupRef.current.remove(); activePopupRef.current = null }
+
+        const popup = L.popup({
+          offset: [0, -10],
+          closeButton: true,
+          className: 'kk-popup',
+          maxWidth: 260,
+          minWidth: 220,
+        })
+          .setLatLng(coords)
+          .setContent(buildPopupHTML(listing))
+          .addTo(mapRef.current)
+
+        activePopupRef.current = popup
+
+        popup.on('add', () => {
+          const btn = popup.getElement()?.querySelector('[data-listing-id]')
+          if (btn) btn.addEventListener('click', () => onMarkerClick?.(listing))
+        })
       })
-    } else {
-      // Individuele pins
-      listings.forEach((listing) => {
-        const coords = getCoords(listing)
-        if (!coords) return
-        coordsRef.current[listing.id] = coords
-        const isSelected = listing.id === selectedId
 
-        const el = makePinIcon(isSelected ? '#006B7D' : '#09090b', 28, isSelected)
+      const m = L.marker(coords, {
+        icon: L.divIcon({
+          html: el,
+          className: '',
+          iconAnchor: [32, 16],
+          iconSize: [64, 32],
+        }),
+        zIndexOffset: isSelected ? 1000 : 0,
+      }).addTo(mapRef.current)
 
-        el.addEventListener('click', (e) => {
-          e.stopPropagation()
-          // Close existing popup
-          if (activePopupRef.current) { activePopupRef.current.remove(); activePopupRef.current = null }
+      markersRef.current.push(m)
+    })
+  }, [listings, selectedId, ready, onMarkerClick])
 
-          const popup = L.popup({
-            offset: [0, -28],
-            closeButton: true,
-            className: 'kk-popup',
-            maxWidth: 260,
-            minWidth: 220,
-          })
-            .setLatLng(coords)
-            .setContent(buildPopupHTML(listing))
-            .addTo(mapRef.current)
-
-          activePopupRef.current = popup
-
-          // Wire up the "Bekijk details" button after popup opens
-          popup.on('add', () => {
-            const btn = popup.getElement()?.querySelector('[data-listing-id]')
-            if (btn) btn.addEventListener('click', () => onMarkerClick?.(listing))
-          })
-        })
-
-        // Hover highlight
-        el.addEventListener('mouseenter', () => {
-          el.querySelector('path').setAttribute('fill', '#006B7D')
-        })
-        el.addEventListener('mouseleave', () => {
-          el.querySelector('path').setAttribute('fill', isSelected ? '#006B7D' : '#09090b')
-        })
-
-        const pinH = isSelected ? 38 : 28
-        const m = L.marker(coords, {
-          icon: L.divIcon({
-            html: el,
-            className: '',
-            iconAnchor: [pinH * 0.5, pinH * 1.3],
-            iconSize: [pinH, pinH * 1.3],
-          }),
-          zIndexOffset: isSelected ? 1000 : 0,
-        }).addTo(mapRef.current)
-        markersRef.current.push(m)
-      })
-    }
-  }, [listings, selectedId, zoom, ready, clusters, onMarkerClick])
-
-  // FlyTo geselecteerde listing
+  // FlyTo selected listing
   useEffect(() => {
     if (!mapRef.current || !ready || !selectedId) return
     const c = coordsRef.current[selectedId]
@@ -287,6 +228,34 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <style>{`
+        /* Price badge markers */
+        .kk-price-marker {
+          cursor: pointer;
+        }
+        .kk-price-badge {
+          background: #09090b;
+          color: white;
+          padding: 5px 13px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+          transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          user-select: none;
+        }
+        .kk-price-marker:hover .kk-price-badge {
+          background: #006B7D;
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(0,107,125,0.45);
+        }
+        .kk-price-marker.selected .kk-price-badge {
+          background: #006B7D;
+          transform: scale(1.15);
+          box-shadow: 0 4px 16px rgba(0,107,125,0.55);
+        }
+        /* Popup styles */
         .kk-popup .leaflet-popup-content-wrapper {
           border-radius: 12px !important;
           box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;

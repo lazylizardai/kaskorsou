@@ -20,3 +20,11 @@ src.zip
 src-b64.txt
 scraper_output.txt
 scraper/fb_cookies.json
+  
+# Deploy scripts with credentials  
+add_domain.py  
+deploy_pages.py  
+deploy_worker.py  
+do_commit.bat  
+do_commit2.bat  
+do_push.bat 
