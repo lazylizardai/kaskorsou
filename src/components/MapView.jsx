@@ -47,21 +47,93 @@ const NB = {
   'cas grandi':     [12.1300, -68.9800],
 }
 
+// Island bounding box — filter listings that fall in the sea
+const LAT_MIN = 12.01, LAT_MAX = 12.42, LNG_MIN = -69.22, LNG_MAX = -68.75
+
 function jitter(d) { return (Math.random() - 0.5) * d }
 
 function getCoords(listing) {
-  if (listing.latitude && listing.longitude) return [listing.latitude, listing.longitude]
+  if (listing.latitude && listing.longitude) {
+    const lat = Number(listing.latitude), lng = Number(listing.longitude)
+    // Only use real coords if they're plausibly on the island
+    if (lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX) {
+      return [lat, lng]
+    }
+  }
   const nb = (listing.neighborhood || listing.address || '').toLowerCase()
   for (const [k, c] of Object.entries(NB)) {
-    if (nb.includes(k)) return [c[0] + jitter(0.004), c[1] + jitter(0.004)]
+    if (nb.includes(k)) return [c[0] + jitter(0.003), c[1] + jitter(0.003)]
   }
   return null
 }
 
 function fmtPrice(price, type) {
-  if (type === 'rent') return `${Math.round(price / 1000)}k/mnd`
-  if (price >= 1000000) return `${(price / 1000000).toFixed(1)}M`
-  return `${Math.round(price / 1000)}k`
+  if (!price) return '—'
+  const n = Number(price)
+  if (type === 'rent') return `ANG ${Math.round(n).toLocaleString()}/mnd`
+  if (n >= 1000000) return `ANG ${(n / 1000000).toFixed(2)}M`
+  return `ANG ${Math.round(n).toLocaleString()}`
+}
+
+function capitalize(s) {
+  if (!s) return ''
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+}
+
+function buildPopupHTML(listing) {
+  const typeLabel = listing.listing_type === 'rent' ? 'Te huur' : 'Te koop'
+  const propType = capitalize(listing.property_type || 'Woning')
+  const price = fmtPrice(listing.price, listing.listing_type)
+  const neighborhood = capitalize(listing.neighborhood || listing.address || '')
+  const beds = listing.bedrooms ? `<span style="display:flex;align-items:center;gap:4px">
+    <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M236,112V80a20,20,0,0,0-20-20H40A20,20,0,0,0,20,80v32a12,12,0,0,0-4,22.63V208a12,12,0,0,0,24,0V196H216v12a12,12,0,0,0,24,0V134.63A12,12,0,0,0,236,112ZM44,84H212v28H44ZM216,172H40V160H216Z"/></svg>
+    ${listing.bedrooms} slpk
+  </span>` : ''
+  const baths = listing.bathrooms ? `<span style="display:flex;align-items:center;gap:4px">
+    <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M236,112H212V40a20,20,0,0,0-20-20H100A20,20,0,0,0,80,40V64H44A12,12,0,0,0,32,76V112H20a12,12,0,0,0,0,24h4.29A84.13,84.13,0,0,0,92,210.69V232a12,12,0,0,0,24,0V216h24v16a12,12,0,0,0,24,0V210.69A84.13,84.13,0,0,0,231.71,136H236a12,12,0,0,0,0-24ZM104,44h104V112H104ZM56,88H80v24H56ZM128,196a60,60,0,0,1-59.48-52H187.48A60.09,60.09,0,0,1,128,196Z"/></svg>
+    ${listing.bathrooms} badk
+  </span>` : ''
+  const sqm = listing.area_sqm ? `<span style="display:flex;align-items:center;gap:4px">
+    <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M216,36H40A20,20,0,0,0,20,56V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V56A20,20,0,0,0,216,36Zm-4,160H44V60H212Z"/></svg>
+    ${listing.area_sqm} m²
+  </span>` : ''
+
+  return `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-width:200px;max-width:240px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#006B7D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">${typeLabel} · ${propType}</div>
+          <div style="font-size:17px;font-weight:700;color:#09090b;line-height:1.2">${price}</div>
+        </div>
+      </div>
+      ${neighborhood ? `<div style="font-size:12px;color:#64748b;margin-bottom:8px;display:flex;align-items:center;gap:4px">
+        <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor"><path d="M128,16a96,96,0,1,0,96,96A96.11,96.11,0,0,0,128,16Zm0,168a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,184Zm0-112a40,40,0,1,0,40,40A40,40,0,0,0,128,72Zm0,56a16,16,0,1,1,16-16A16,16,0,0,1,128,128Z"/></svg>
+        ${neighborhood}
+      </div>` : ''}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#374151;margin-bottom:12px">
+        ${beds}${baths}${sqm}
+      </div>
+      <button 
+        data-listing-id="${listing.id}"
+        style="width:100%;padding:7px 12px;background:#09090b;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"
+        onmouseover="this.style.background='#006B7D'"
+        onmouseout="this.style.background='#09090b'"
+      >Bekijk details →</button>
+    </div>
+  `
+}
+
+// Simple teardrop pin SVG
+function makePinIcon(color = '#09090b', size = 28, selected = false) {
+  const s = selected ? size * 1.35 : size
+  const svg = `<svg width="${s}" height="${s * 1.3}" viewBox="0 0 30 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 24 15 24S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="${color}"/>
+    <circle cx="15" cy="15" r="6" fill="white" fill-opacity="0.9"/>
+  </svg>`
+  const el = document.createElement('div')
+  el.style.cssText = `filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));cursor:pointer;`
+  el.innerHTML = svg
+  return el
 }
 
 export default function MapView({ listings = [], selectedId, onMarkerClick }) {
@@ -69,6 +141,7 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
   const mapRef = useRef(null)
   const markersRef = useRef([])
   const coordsRef = useRef({})
+  const activePopupRef = useRef(null)
   const [zoom, setZoom] = useState(11)
   const [ready, setReady] = useState(false)
 
@@ -89,8 +162,8 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
       if (!coords) {
         const pts = g.items.filter(l => l.latitude && l.longitude)
         if (pts.length) coords = [
-          pts.reduce((s, l) => s + l.latitude, 0) / pts.length,
-          pts.reduce((s, l) => s + l.longitude, 0) / pts.length,
+          pts.reduce((s, l) => s + Number(l.latitude), 0) / pts.length,
+          pts.reduce((s, l) => s + Number(l.longitude), 0) / pts.length,
         ]
       }
       return { ...g, coords }
@@ -120,20 +193,21 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
     if (!mapRef.current || !ready) return
     markersRef.current.forEach(m => m.remove())
     markersRef.current = []
+    if (activePopupRef.current) { activePopupRef.current.remove(); activePopupRef.current = null }
 
     if (zoom < CLUSTER_ZOOM) {
       // Cluster bubbles per buurt
       clusters.forEach(({ key, items, coords }) => {
         const el = document.createElement('div')
         el.style.cssText = `
-          background:#006B7D;color:white;padding:7px 14px;border-radius:20px;
+          background:#006B7D;color:white;padding:6px 13px;border-radius:20px;
           font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;
           box-shadow:0 2px 10px rgba(0,107,125,0.45);
           border:2px solid rgba(255,255,255,0.6);
           display:flex;align-items:center;gap:5px;white-space:nowrap;
         `
         const badge = document.createElement('span')
-        badge.style.cssText = `background:rgba(255,255,255,0.2);border-radius:8px;padding:1px 6px;font-size:11px;`
+        badge.style.cssText = `background:rgba(255,255,255,0.25);border-radius:8px;padding:1px 6px;font-size:11px;`
         badge.textContent = items.length
         const label = document.createElement('span')
         label.textContent = key.charAt(0).toUpperCase() + key.slice(1)
@@ -146,37 +220,56 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         markersRef.current.push(m)
       })
     } else {
-      // Individuele prijs-badges
+      // Individuele pins
       listings.forEach((listing) => {
         const coords = getCoords(listing)
         if (!coords) return
         coordsRef.current[listing.id] = coords
         const isSelected = listing.id === selectedId
 
-        const el = document.createElement('div')
-        el.style.cssText = `
-          background:${isSelected ? '#006B7D' : '#09090b'};
-          color:white;padding:5px 11px;border-radius:8px;
-          font-size:11px;font-weight:700;font-family:inherit;
-          white-space:nowrap;cursor:pointer;
-          box-shadow:0 2px 8px rgba(0,0,0,0.28);
-          border:2px solid ${isSelected ? 'rgba(255,255,255,0.9)' : 'transparent'};
-          transform:${isSelected ? 'scale(1.18)' : 'scale(1)'};
-          transition:transform 0.15s ease,background 0.15s ease;
-        `
-        el.textContent = `ANG ${fmtPrice(listing.price, listing.listing_type)}`
-        el.addEventListener('click', () => onMarkerClick?.(listing))
-        el.addEventListener('mouseenter', () => {
-          el.style.background = '#006B7D'
-          el.style.transform = 'scale(1.12)'
-        })
-        el.addEventListener('mouseleave', () => {
-          el.style.background = listing.id === selectedId ? '#006B7D' : '#09090b'
-          el.style.transform = listing.id === selectedId ? 'scale(1.18)' : 'scale(1)'
+        const el = makePinIcon(isSelected ? '#006B7D' : '#09090b', 28, isSelected)
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()
+          // Close existing popup
+          if (activePopupRef.current) { activePopupRef.current.remove(); activePopupRef.current = null }
+
+          const popup = L.popup({
+            offset: [0, -28],
+            closeButton: true,
+            className: 'kk-popup',
+            maxWidth: 260,
+            minWidth: 220,
+          })
+            .setLatLng(coords)
+            .setContent(buildPopupHTML(listing))
+            .addTo(mapRef.current)
+
+          activePopupRef.current = popup
+
+          // Wire up the "Bekijk details" button after popup opens
+          popup.on('add', () => {
+            const btn = popup.getElement()?.querySelector('[data-listing-id]')
+            if (btn) btn.addEventListener('click', () => onMarkerClick?.(listing))
+          })
         })
 
+        // Hover highlight
+        el.addEventListener('mouseenter', () => {
+          el.querySelector('path').setAttribute('fill', '#006B7D')
+        })
+        el.addEventListener('mouseleave', () => {
+          el.querySelector('path').setAttribute('fill', isSelected ? '#006B7D' : '#09090b')
+        })
+
+        const pinH = isSelected ? 38 : 28
         const m = L.marker(coords, {
-          icon: L.divIcon({ html: el, className: '', iconAnchor: [30, 14] }),
+          icon: L.divIcon({
+            html: el,
+            className: '',
+            iconAnchor: [pinH * 0.5, pinH * 1.3],
+            iconSize: [pinH, pinH * 1.3],
+          }),
           zIndexOffset: isSelected ? 1000 : 0,
         }).addTo(mapRef.current)
         markersRef.current.push(m)
@@ -193,6 +286,27 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <style>{`
+        .kk-popup .leaflet-popup-content-wrapper {
+          border-radius: 12px !important;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+          padding: 0 !important;
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
+        }
+        .kk-popup .leaflet-popup-content {
+          margin: 16px !important;
+        }
+        .kk-popup .leaflet-popup-tip-container {
+          margin-top: -2px;
+        }
+        .kk-popup .leaflet-popup-close-button {
+          top: 8px !important;
+          right: 8px !important;
+          color: #64748b !important;
+          font-size: 18px !important;
+        }
+      `}</style>
       <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
       {!ready && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
