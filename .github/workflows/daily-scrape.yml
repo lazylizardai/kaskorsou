@@ -43,10 +43,14 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
+          # Facebook scraper requires headless=False + local cookies — runs via Windows Task Scheduler instead
+          DEFAULT_SOURCES="remax,athome,caresto,livinggoed"
           SOURCES_ARG=""
           DRY_RUN_ARG=""
           if [ -n "${{ github.event.inputs.sources }}" ]; then
             SOURCES_ARG="--sources ${{ github.event.inputs.sources }}"
+          else
+            SOURCES_ARG="--sources $DEFAULT_SOURCES"
           fi
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             DRY_RUN_ARG="--dry-run"

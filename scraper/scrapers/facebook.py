@@ -46,13 +46,35 @@ class FacebookScraper:
                     "Chrome/124.0.0.0 Safari/537.36"
                 ),
             )
+            SAMESITE_MAP = {
+                "no_restriction": "None",
+                "unspecified": "Lax",
+                "lax": "Lax",
+                "strict": "Strict",
+                "none": "None",
+            }
             with open(COOKIES_FILE) as f:
-                ctx.add_cookies(json.load(f))
+                raw_cookies = json.load(f)
+            cookies = []
+            for c in raw_cookies:
+                cookie = {
+                    "name": c["name"],
+                    "value": c["value"],
+                    "domain": c["domain"],
+                    "path": c.get("path", "/"),
+                    "secure": c.get("secure", False),
+                    "httpOnly": c.get("httpOnly", False),
+                    "sameSite": SAMESITE_MAP.get(c.get("sameSite", "").lower(), "Lax"),
+                }
+                if c.get("expirationDate"):
+                    cookie["expires"] = int(c["expirationDate"])
+                cookies.append(cookie)
+            ctx.add_cookies(cookies)
 
             page = ctx.new_page()
 
             for listing_type, url in URLS:
-                page.goto(url, wait_until="networkidle", timeout=30000)
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
                 time.sleep(3)
 
                 if "login" in page.url.lower():
