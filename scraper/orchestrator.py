@@ -152,6 +152,23 @@ def run_scraper(sb, scraper_class, dry_run=False) -> dict:
             # FB: markeer agency-listings als duplicaat waar mogelijk
             if name == "facebook":
                 mark_fb_duplicates(sb, listings)
+
+            # Stale-sweep: listings van deze bron die deze run niet gezien zijn -> inactive.
+            # Alleen bij een geloofwaardige oogst, zodat een half-kapotte scraper
+            # niet de hele bron leegtrekt.
+            if len(listings) >= 20:
+                try:
+                    res = (sb.table("kas_listings")
+                           .update({"status": "inactive"})
+                           .eq("source_id", name)
+                           .eq("status", "active")
+                           .lt("last_seen_at", started_at.isoformat())
+                           .execute())
+                    n_stale = len(res.data or [])
+                    if n_stale:
+                        logger.info(f"  {name}: {n_stale} verouderde listings -> inactive")
+                except Exception as se:
+                    logger.warning(f"  {name}: stale-sweep mislukt: {se}")
         else:
             inserted, updated = 0, 0
 

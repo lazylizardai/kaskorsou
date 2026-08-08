@@ -54,7 +54,7 @@ jobs:
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             DRY_RUN_ARG="--dry-run"
           fi
-          python -m scraper.orchestrator $SOURCES_ARG $DRY_RUN_ARG
+          python -m scraper.orchestrator $SOURCES_ARG $DRY_RUN_ARG --dedup
 
       - name: Notify Slack on failure
         if: failure()

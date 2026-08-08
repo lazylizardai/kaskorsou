@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   MagnifyingGlass, Sliders, MapTrifold, List, X,
-  SortAscending, CaretDown,
+  SortAscending, CaretDown, Globe,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import FilterSidebar from '../components/FilterSidebar'
@@ -45,6 +46,7 @@ function BuyRentToggle({ value, onChange }) {
 }
 
 export default function SearchPage() {
+  const navigate = useNavigate()
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
@@ -215,6 +217,11 @@ export default function SearchPage() {
               {icon} {label}
             </button>
           ))}
+          <button onClick={() => navigate('/kaart')} aria-label="Open de 3D-kaart van Curaçao"
+            style={{ color: TEAL, fontWeight: 600, transition: 'background-color 0.15s ease, color 0.15s ease' }}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs hover:bg-white">
+            <Globe size={14} weight="fill" /> 3D
+          </button>
         </div>
       </div>
 

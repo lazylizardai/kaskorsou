@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   MagnifyingGlass, ArrowRight, MapPin, Buildings,
   Waves, SunHorizon, Anchor, Tree,
-  ArrowUpRight, Sparkle, Cube,
+  ArrowUpRight, Sparkle, Cube, Globe,
 } from '@phosphor-icons/react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { getListings } from '../lib/supabase'
@@ -456,10 +456,16 @@ export default function HomePage() {
             <h2 style={{ color: 'white', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1 }} className="text-3xl md:text-5xl mb-6">
               Ontdek alle woningen<br />op de interactieve kaart
             </h2>
-            <Link to="/search" style={{ background: 'white', color: TEAL, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8 }}
-              className="px-8 py-4 rounded-xl text-base hover:opacity-90 transition-opacity">
-              Open kaartoverzicht <ArrowRight size={16} weight="bold" />
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link to="/search" style={{ background: 'white', color: TEAL, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                className="px-8 py-4 rounded-xl text-base hover:opacity-90 transition-opacity">
+                Open kaartoverzicht <ArrowRight size={16} weight="bold" />
+              </Link>
+              <Link to="/kaart" style={{ background: 'transparent', color: 'white', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.7)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                className="px-8 py-4 rounded-xl text-base hover:bg-white/10 transition-colors">
+                <Globe size={17} weight="fill" /> Bekijk in 3D
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>

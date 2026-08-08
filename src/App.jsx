@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Navigation from './components/Navigation'
@@ -7,6 +8,20 @@ import DetailPage from './pages/DetailPage'
 import AccountPage from './pages/AccountPage'
 import FavoritesPage from './pages/FavoritesPage'
 import MakelaarsPage from './pages/MakelaarsPage'
+
+// Lazy: houdt maplibre-gl uit de hoofdbundle
+const Kaart3DPage = lazy(() => import('./pages/Kaart3DPage'))
+
+function KaartLoader() {
+  return (
+    <div style={{ minHeight: '100dvh', paddingTop: 72, background: 'linear-gradient(180deg, #EAF2F0 0%, #F5F0E8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <style>{`@keyframes kk-loadpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }`}</style>
+      <p style={{ fontSize: 15, fontWeight: 700, color: '#09090B', letterSpacing: '-0.01em', animation: 'kk-loadpulse 1.6s ease-in-out infinite' }}>
+        Curaçao laden…
+      </p>
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -20,6 +35,11 @@ export default function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/makelaars" element={<MakelaarsPage />} />
+          <Route path="/kaart" element={
+            <Suspense fallback={<KaartLoader />}>
+              <Kaart3DPage />
+            </Suspense>
+          } />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
