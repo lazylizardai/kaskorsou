@@ -228,8 +228,8 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map(({ value, label }, i) => (
               <motion.div key={label} {...slideUp(i * 0.05)} className="text-center md:text-left">
-                <p style={{ fontWeight: 800, letterSpacing: '-0.03em', color: '#5EEAD4' }} className="text-2xl md:text-3xl">{value}</p>
-                <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-sm mt-0.5">{label}</p>
+                <p style={{ fontWeight: 800, letterSpacing: '-0.03em', color: '#FFFFFF' }} className="text-2xl md:text-3xl">{value}</p>
+                <p style={{ color: 'rgba(255,255,255,0.75)' }} className="text-sm mt-0.5">{label}</p>
               </motion.div>
             ))}
           </div>
@@ -452,7 +452,7 @@ export default function HomePage() {
       <section style={{ padding: '80px 0', background: `linear-gradient(135deg, ${TEAL} 0%, #004D5E 100%)` }}>
         <div className="max-w-[1200px] mx-auto px-5 lg:px-8 text-center">
           <motion.div {...slideUp(0)}>
-            <p style={{ color: '#5EEAD4', fontWeight: 600, letterSpacing: '0.1em' }} className="text-xs uppercase mb-4">Klaar om te zoeken?</p>
+            <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, letterSpacing: '0.1em' }} className="text-xs uppercase mb-4">Klaar om te zoeken?</p>
             <h2 style={{ color: 'white', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1 }} className="text-3xl md:text-5xl mb-6">
               Ontdek alle woningen<br />op de interactieve kaart
             </h2>
@@ -547,8 +547,10 @@ function MiniCard({ listing }) {
         display: 'block', borderRadius: 14, overflow: 'hidden',
         border: '1px solid rgba(255,255,255,0.08)',
         background: '#161F2E',
-        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)',
-        transition: 'all 0.25s ease',
+        boxShadow: hovered
+          ? 'inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 32px rgba(0,0,0,0.4)'
+          : 'inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.2)',
+        transition: 'background-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease',
         transform: hovered ? 'translateY(-3px)' : 'none',
       }}>
       <div style={{ aspectRatio: '16/10', overflow: 'hidden' }}>

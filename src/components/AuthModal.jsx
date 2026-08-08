@@ -105,7 +105,7 @@ export default function AuthModal({ onClose, defaultTab = 'login' }) {
             </AnimatePresence>
 
             <Field icon={<EnvelopeSimple size={16} />} placeholder="E-mailadres"
-              value={email} onChange={e => setEmail(e.target.value)} type="email" required />
+              value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="email" spellCheck={false} required />
 
             <div className="relative">
               <Field icon={<Lock size={16} />} placeholder="Wachtwoord"

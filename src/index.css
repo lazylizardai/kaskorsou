@@ -223,3 +223,27 @@
 .marker-cluster-large div {
   background: transparent !important;
 }
+
+/* ── LL ui-check fixes ── */
+
+/* Zichtbare focus voor alle interactieve elementen (inputs met outline:none inbegrepen) */
+:focus-visible {
+  outline: 2px solid #0A7EA4;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* transition-all van Tailwind beperken tot veilige eigenschappen */
+.transition-all {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+}
+
+/* Reduced motion honoreren */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

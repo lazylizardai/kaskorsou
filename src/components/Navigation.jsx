@@ -39,6 +39,8 @@ export default function Navigation() {
 
   const isSearch = location.pathname === '/search'
   const favCount = favoriteIds.size
+  // Nav zweeft transparant boven een donkere hero op home + makelaars: tekst moet dan licht zijn
+  const onDark = !scrolled && !isSearch && ['/', '/makelaars'].includes(location.pathname)
 
   async function handleSignOut() {
     await signOut()
@@ -63,13 +65,17 @@ export default function Navigation() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <motion.img
-              src="https://tbfjlfnahdqfbnpszyyj.supabase.co/storage/v1/object/public/KasKorsou/kaskorsou-icon.svg"
+              src="/kaskorsou-icon.svg"
               alt="KasKorsou"
+              width={36} height={36}
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="w-9 h-9"
             />
-            <img src="https://tbfjlfnahdqfbnpszyyj.supabase.co/storage/v1/object/public/KasKorsou/kaskorsou-logo-full.svg" alt="KasKorsou" className="h-7 hidden sm:block" />
+            <span className="hidden sm:block text-lg font-bold tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+              <span style={{ color: onDark ? '#FFFFFF' : '#003087' }}>Kas</span>
+              <span style={{ color: onDark ? '#5EEAD4' : '#0A7EA4' }}>Kòrsou</span>
+            </span>
           </Link>
 
           {/* Center search bar */}
@@ -92,15 +98,16 @@ export default function Navigation() {
                 background: location.pathname === '/makelaars'
                   ? 'linear-gradient(135deg, rgba(232,181,71,0.16) 0%, rgba(212,162,76,0.10) 100%)'
                   : 'transparent',
-                color: location.pathname === '/makelaars' ? '#9C6F1E' : '#52525B',
+                color: location.pathname === '/makelaars' ? (onDark ? '#E8B547' : '#9C6F1E') : (onDark ? 'rgba(255,255,255,0.85)' : '#52525B'),
                 border: location.pathname === '/makelaars' ? '1px solid rgba(212,162,76,0.5)' : '1px solid transparent',
               }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium hover:text-zinc-900 hover:bg-zinc-50 transition-all">
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${onDark ? 'hover:bg-white/10' : 'hover:text-zinc-900 hover:bg-zinc-50'}`}>
               <Cube size={14} weight="fill" style={{ color: '#D4A24C' }} />
               Voor makelaars
             </Link>
             <Link to="/favorites"
-              className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-all">
+              style={{ color: onDark ? 'rgba(255,255,255,0.85)' : undefined }}
+              className={`relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${onDark ? 'hover:bg-white/10' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'}`}>
               <Heart size={16} weight={favCount > 0 ? 'fill' : 'regular'} style={{ color: favCount > 0 ? '#E8672A' : undefined }} />
               Bewaard
               {favCount > 0 && (

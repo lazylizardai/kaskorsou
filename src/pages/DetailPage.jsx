@@ -35,7 +35,7 @@ function TourSection({ listing }) {
             color: tab === 'tour' ? '#1F1407' : '#52525B',
             border: tab === 'tour' ? `1px solid ${GOLD}` : '1px solid #E4E4E7',
             boxShadow: tab === 'tour' ? '0 2px 8px rgba(212,162,76,0.35)' : 'none',
-            transition: 'all 0.15s',
+            transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
           }}>
           <Cube size={13} weight="fill" />3D Tour
         </button>
@@ -46,7 +46,7 @@ function TourSection({ listing }) {
             background: tab === 'photos' ? INK : '#F4F4F5',
             color: tab === 'photos' ? 'white' : '#52525B',
             border: '1px solid ' + (tab === 'photos' ? INK : '#E4E4E7'),
-            transition: 'all 0.15s',
+            transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
           }}>
           <Image size={13} weight="fill" />Foto's ({listing.images?.length || 0})
         </button>
@@ -144,18 +144,18 @@ function Gallery({ images }) {
             style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={() => setLightbox(false)}
           >
-            <button onClick={() => setLightbox(false)}
+            <button aria-label="Sluit foto's" onClick={() => setLightbox(false)}
               style={{ position: 'absolute', top: 20, right: 20, color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.1)', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={20} weight="bold" />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); setCurrent(c => (c - 1 + imgs.length) % imgs.length) }}
+            <button aria-label="Vorige foto" onClick={(e) => { e.stopPropagation(); setCurrent(c => (c - 1 + imgs.length) % imgs.length) }}
               style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.12)', color: 'white', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CaretLeft size={22} weight="bold" />
             </button>
             <img src={imgs[current]} alt=""
               style={{ maxWidth: '88vw', maxHeight: '84vh', objectFit: 'contain', borderRadius: 12 }}
               onClick={(e) => e.stopPropagation()} />
-            <button onClick={(e) => { e.stopPropagation(); setCurrent(c => (c + 1) % imgs.length) }}
+            <button aria-label="Volgende foto" onClick={(e) => { e.stopPropagation(); setCurrent(c => (c + 1) % imgs.length) }}
               style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.12)', color: 'white', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CaretRight size={22} weight="bold" />
             </button>
@@ -246,7 +246,7 @@ export default function DetailPage() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px 80px' }}>
 
         {/* Back */}
-        <button onClick={() => navigate(-1)}
+        <button aria-label="Terug" onClick={() => navigate(-1)}
           style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#71717A', fontSize: 13, fontWeight: 500, marginBottom: 20 }}
           className="hover:text-zinc-900 transition-colors">
           <ArrowLeft size={15} weight="bold" /> Terug naar zoeken
@@ -297,7 +297,7 @@ export default function DetailPage() {
               </div>
               <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
                 <div style={{ position: 'relative' }}>
-                  <button onClick={handleShare}
+                  <button aria-label="Deel woning" onClick={handleShare}
                     style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid #E4E4E7', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}
                     className="hover:bg-zinc-50 transition-colors">
                     <ShareNetwork size={16} style={{ color: '#71717A' }} />
@@ -312,7 +312,7 @@ export default function DetailPage() {
                   </AnimatePresence>
                 </div>
                 <motion.button onClick={handleFavorite} whileTap={{ scale: 0.85 }}
-                  style={{ width: 40, height: 40, borderRadius: '50%', border: `1.5px solid ${isFavorite ? CORAL : '#E4E4E7'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isFavorite ? '#FFF5F0' : 'white', transition: 'all 0.2s' }}>
+                  style={{ width: 40, height: 40, borderRadius: '50%', border: `1.5px solid ${isFavorite ? CORAL : '#E4E4E7'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isFavorite ? '#FFF5F0' : 'white', transition: 'background-color 0.2s, border-color 0.2s' }}>
                   <Heart size={16} weight={isFavorite ? 'fill' : 'regular'} style={{ color: isFavorite ? CORAL : '#71717A' }} />
                 </motion.button>
               </div>

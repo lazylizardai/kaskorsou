@@ -134,7 +134,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
             ? 'linear-gradient(135deg, rgba(232,181,71,0.12) 0%, rgba(212,162,76,0.06) 100%)'
             : 'white',
           display: 'flex', alignItems: 'center', gap: 10,
-          textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
+          textAlign: 'left', cursor: 'pointer', transition: 'background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.15s',
         }}>
         <span style={{
           width: 28, height: 28, borderRadius: 7,
@@ -143,7 +143,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
             : '#F4F4F5',
           color: filters.scanOnly ? '#1F1407' : '#A1A1AA',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0, transition: 'all 0.15s',
+          flexShrink: 0, transition: 'background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.15s',
         }}>
           <Cube size={14} weight="fill" />
         </span>
@@ -186,7 +186,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
                 border: '1px solid #E4E4E7',
                 background: filters.priceMin === p.min && filters.priceMax === p.max ? '#E6F2F4' : 'white',
                 color: filters.priceMin === p.min && filters.priceMax === p.max ? TEAL : '#52525B',
-                transition: 'all 0.15s',
+                transition: 'background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.15s',
               }}>
               {p.label}
             </button>
@@ -207,7 +207,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
                   border: active ? `1.5px solid ${TEAL}` : '1px solid #E4E4E7',
                   background: active ? '#E6F2F4' : 'white',
                   color: active ? TEAL : '#52525B',
-                  transition: 'all 0.15s',
+                  transition: 'background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.15s',
                 }}>
                 {label}
               </button>
@@ -229,7 +229,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
                   border: active ? `1.5px solid ${TEAL}` : '1px solid #E4E4E7',
                   background: active ? '#E6F2F4' : 'white',
                   color: active ? TEAL : '#52525B',
-                  transition: 'all 0.15s',
+                  transition: 'background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.15s',
                 }}>
                 {n === 0 ? 'Alle' : `${n}+`}
               </button>
@@ -253,7 +253,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
                   background: active ? '#E6F2F4' : 'transparent',
                   color: active ? TEAL : '#52525B',
                   marginBottom: 2,
-                  transition: 'all 0.12s',
+                  transition: 'background-color 0.12s, color 0.12s, border-color 0.12s',
                 }}>
                 {n}
               </button>

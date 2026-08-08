@@ -33,7 +33,7 @@ function BuyRentToggle({ value, onChange }) {
               color: active ? INK : '#71717A',
               fontWeight: active ? 600 : 500,
               boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease',
+              transition: 'background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease',
             }}
             className="px-4 py-1.5 rounded-md text-sm">
             {label}
@@ -210,7 +210,7 @@ export default function SearchPage() {
             { key: 'map', icon: <MapTrifold size={14} />, label: 'Kaart' },
           ].map(({ key, icon, label }) => (
             <button key={key} onClick={() => setView(key)}
-              style={{ background: view === key ? 'white' : 'transparent', color: view === key ? INK : '#71717A', fontWeight: view === key ? 600 : 500, boxShadow: view === key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.15s ease' }}
+              style={{ background: view === key ? 'white' : 'transparent', color: view === key ? INK : '#71717A', fontWeight: view === key ? 600 : 500, boxShadow: view === key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', transition: 'background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease' }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs">
               {icon} {label}
             </button>

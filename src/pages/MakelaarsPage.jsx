@@ -569,7 +569,7 @@ export default function MakelaarsPage() {
                         border: form.tier === tier.id ? `1.5px solid ${TEAL}` : '1px solid #E4E4E7',
                         background: form.tier === tier.id ? '#E6F2F4' : 'white',
                         color: form.tier === tier.id ? TEAL : '#52525B',
-                        transition: 'all 0.15s',
+                        transition: 'background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.15s',
                       }}>
                       {tier.name}
                     </button>
