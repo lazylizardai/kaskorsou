@@ -1,1 +1,27 @@
-²ø1šYì
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<style>
+.house-base { fill: #0A7EA4; }
+.house-roof { fill: #003087; }
+.house-door { fill: #FFFFFF; opacity: 0.9; }
+.house-window { fill: #FECB00; }
+.star { fill: #FFFFFF; }
+</style>
+
+<!-- Roof (CuraÃ§ao blue) -->
+<path class="house-roof" d="M 0,40 L 50,0 L 100,40 L 90,40 L 50,10 L 10,40 Z"/>
+
+<!-- Base (Ocean blue) -->
+<rect class="house-base" x="10" y="40" width="80" height="60" rx="4"/>
+
+<!-- Door -->
+<rect class="house-door" x="35" y="65" width="30" height="35" rx="2"/>
+
+<!-- Windows (CuraÃ§ao yellow) -->
+<rect class="house-window" x="20" y="50" width="18" height="18" rx="2"/>
+<rect class="house-window" x="62" y="50" width="18" height="18" rx="2"/>
+
+<!-- Star accent (from CuraÃ§ao flag) -->
+<g class="star" transform="translate(50, 25) scale(0.4)">
+  <path d="M 0,-10 L 2.5,-3 L 10,-3 L 4,2 L 6,9 L 0,4 L -6,9 L -4,2 L -10,-3 L -2.5,-3 Z"/>
+</g>
+</svg>

@@ -6,6 +6,7 @@ import SearchPage from './pages/SearchPage'
 import DetailPage from './pages/DetailPage'
 import AccountPage from './pages/AccountPage'
 import FavoritesPage from './pages/FavoritesPage'
+import MakelaarsPage from './pages/MakelaarsPage'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/listing/:id" element={<DetailPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/makelaars" element={<MakelaarsPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   MagnifyingGlass, Heart, List, X, ArrowRight,
-  House, MapTrifold, UserCircle, SignOut, User, CaretDown,
+  House, MapTrifold, UserCircle, SignOut, User, CaretDown, Cube,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
@@ -87,6 +87,18 @@ export default function Navigation() {
 
           {/* Right actions */}
           <div className="hidden md:flex items-center gap-2 shrink-0">
+            <Link to="/makelaars"
+              style={{
+                background: location.pathname === '/makelaars'
+                  ? 'linear-gradient(135deg, rgba(232,181,71,0.16) 0%, rgba(212,162,76,0.10) 100%)'
+                  : 'transparent',
+                color: location.pathname === '/makelaars' ? '#9C6F1E' : '#52525B',
+                border: location.pathname === '/makelaars' ? '1px solid rgba(212,162,76,0.5)' : '1px solid transparent',
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium hover:text-zinc-900 hover:bg-zinc-50 transition-all">
+              <Cube size={14} weight="fill" style={{ color: '#D4A24C' }} />
+              Voor makelaars
+            </Link>
             <Link to="/favorites"
               className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-all">
               <Heart size={16} weight={favCount > 0 ? 'fill' : 'regular'} style={{ color: favCount > 0 ? '#E8672A' : undefined }} />
@@ -158,10 +170,11 @@ export default function Navigation() {
                 { to: '/search', label: 'Zoeken', icon: MagnifyingGlass },
                 { to: '/favorites', label: 'Bewaard', icon: Heart },
                 { to: '/search', label: 'Kaartoverzicht', icon: MapTrifold },
-              ].map(({ to, label, icon: Icon }) => (
+                { to: '/makelaars', label: 'Voor makelaars', icon: Cube, gold: true },
+              ].map(({ to, label, icon: Icon, gold }) => (
                 <Link key={label} to={to}
                   className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors">
-                  <Icon size={18} weight="regular" style={{ color: TEAL }} /> {label}
+                  <Icon size={18} weight={gold ? 'fill' : 'regular'} style={{ color: gold ? '#D4A24C' : TEAL }} /> {label}
                 </Link>
               ))}
               <div className="pt-2 border-t border-zinc-100">

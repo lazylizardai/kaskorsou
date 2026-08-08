@@ -1,12 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   MagnifyingGlass, ArrowRight, MapPin, Buildings,
   Waves, SunHorizon, Anchor, Tree,
-  ArrowUpRight, Sparkle,
+  ArrowUpRight, Sparkle, Cube,
 } from '@phosphor-icons/react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { MOCK_LISTINGS } from '../data/mockListings'
+import { getListings } from '../lib/supabase'
+import { hasActiveScan } from '../lib/scan'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
@@ -14,9 +15,40 @@ const SAND = '#F5F0E8'
 const INK = '#09090B'
 const DARK = '#0B1120'
 const DARK2 = '#111827'
+const GOLD = '#D4A24C'
 
 /* Reliable Unsplash – Curaçao aerial beach */
 const HERO_IMG = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&w=1920&q=80'
+
+// Fallback-foto's per wijk (voor listings zonder bruikbare afbeeldingen)
+const NB_IMAGES = {
+  'Jan Thiel': 'https://images.unsplash.com/photo-1571986237692-cf5b892ad4b9?w=800&q=80',
+  'Blue Bay': 'https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&q=80',
+  'Blue Bay Golf & Beach Resort': 'https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&q=80',
+  Pietermaai: 'https://images.unsplash.com/photo-1590059915548-18e6a95a8d6b?w=800&q=80',
+  'Coral Estate': 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80',
+  Piscadera: 'https://images.unsplash.com/photo-1600596542815-aa3a76832e02?w=800&q=80',
+  Salinja: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
+  Brievengat: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+  Mahuma: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80',
+  'Boca Gentil': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+  'Jan Sofat': 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80',
+  'Toni Kunchi': 'https://images.unsplash.com/photo-1600047509358-9dc75507daeb?w=800&q=80',
+  'Groot Davelaar': 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80',
+  Damacor: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80',
+  'Seru Fortuna': 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
+  default: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+}
+
+function listingImage(listing) {
+  let img = listing?.images?.length ? listing.images[0] : null
+  if (img && img.startsWith('//')) img = 'https:' + img
+  return img || NB_IMAGES[listing?.neighborhood] || NB_IMAGES.default
+}
+
+function neighborhoodFallback(listing) {
+  return NB_IMAGES[listing?.neighborhood] || NB_IMAGES.default
+}
 
 const slideUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -26,29 +58,27 @@ const slideUp = (delay = 0) => ({
 })
 
 function formatPrice(price, type) {
+  if (!price) return '—'
   if (type === 'rent') return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}/mnd`
   if (price >= 1000000) return `ANG ${(price / 1000000).toFixed(1)}M`
   return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}`
 }
 
 const NEIGHBORHOODS = [
-  { name: 'Jan Thiel', region: 'Oost Curaçao', listings: 68, icon: Waves, color: '#0891B2', img: 'https://images.unsplash.com/photo-1571986237692-cf5b892ad4b9?w=600&q=80' },
-  { name: 'Blue Bay', region: 'Zuidwestkust', listings: 41, icon: Anchor, color: '#0284C7', img: 'https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=600&q=80' },
-  { name: 'Pietermaai', region: 'Willemstad', listings: 34, icon: Buildings, color: '#7C3AED', img: 'https://images.unsplash.com/photo-1590059915548-18e6a95a8d6b?w=600&q=80' },
-  { name: 'Coral Estate', region: 'Rif St. Marie', listings: 22, icon: Tree, color: '#059669', img: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=600&q=80' },
-  { name: 'Piscadera', region: 'West', listings: 18, icon: SunHorizon, color: CORAL, img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80' },
-]
-
-const STATS = [
-  { value: '1.063', label: 'Actieve woningen' },
-  { value: '45+', label: 'Makelaarskantoren' },
-  { value: '12', label: 'Wijken gedekt' },
-  { value: 'ANG 485K', label: 'Gemiddelde prijs' },
+  { name: 'Jan Thiel', region: 'Oost Curaçao', icon: Waves, color: '#0891B2', img: NB_IMAGES['Jan Thiel'] },
+  { name: 'Blue Bay', region: 'Zuidwestkust', icon: Anchor, color: '#0284C7', img: NB_IMAGES['Blue Bay'] },
+  { name: 'Pietermaai', region: 'Willemstad', icon: Buildings, color: '#7C3AED', img: NB_IMAGES.Pietermaai },
+  { name: 'Coral Estate', region: 'Rif St. Marie', icon: Tree, color: '#059669', img: NB_IMAGES['Coral Estate'] },
+  { name: 'Piscadera', region: 'West', icon: SunHorizon, color: CORAL, img: NB_IMAGES.Piscadera },
 ]
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [listingType, setListingType] = useState('sale')
+  const [featured, setFeatured] = useState([])
+  const [recent, setRecent] = useState([])
+  const [scanListings, setScanListings] = useState([])
+  const [count, setCount] = useState(null)
   const navigate = useNavigate()
   const heroRef = useRef(null)
 
@@ -58,13 +88,44 @@ export default function HomePage() {
   })
   const heroImgY = useTransform(scrollYProgress, [0, 1], ['0%', '25%'])
 
+  useEffect(() => {
+    getListings({ listing_type: 'sale' }).then(data => {
+      setCount(data.length)
+      const landKeywords = ['kavel', 'land', 'lot', 'grond', 'perceel', 'bouwkavel']
+      const notLand = (l) =>
+        !landKeywords.some(k => l.title?.toLowerCase().includes(k)) &&
+        !landKeywords.includes(l.property_type?.toLowerCase())
+      const top = [...data.filter(l => l.images?.length > 0 && l.price > 0 && notLand(l))]
+        .sort((a, b) => (b.price || 0) - (a.price || 0))
+        .slice(0, 4)
+      if (top.length < 4) {
+        const fill = data.filter(l => !top.find(t => t.id === l.id)).slice(0, 4 - top.length)
+        setFeatured([...top, ...fill])
+      } else {
+        setFeatured(top)
+      }
+    }).catch(() => {})
+
+    getListings({}).then(data => {
+      const sorted = [...data].sort((a, b) =>
+        new Date(b.last_seen_at || b.created_at || 0) - new Date(a.last_seen_at || a.created_at || 0))
+      setRecent(sorted.slice(0, 6))
+      const scans = data.filter(hasActiveScan).slice(0, 6)
+      setScanListings(scans)
+    }).catch(() => {})
+  }, [])
+
   const handleSearch = (e) => {
     e.preventDefault()
     navigate(`/search?q=${encodeURIComponent(searchQuery)}&type=${listingType}`)
   }
 
-  const featured = MOCK_LISTINGS.filter(l => l.is_featured).slice(0, 3)
-  const recent = MOCK_LISTINGS.filter(l => l.is_new).slice(0, 4)
+  const stats = [
+    { value: count ? `${count}+` : '…', label: 'Actieve woningen' },
+    { value: '5', label: 'Makelaarsbronnen' },
+    { value: '12', label: 'Wijken gedekt' },
+    { value: 'Live', label: 'Dagelijks bijgewerkt' },
+  ]
 
   return (
     <div style={{ background: DARK, color: 'white', fontFamily: 'Geist, system-ui, sans-serif' }}
@@ -98,7 +159,7 @@ export default function HomePage() {
             <span style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', color: 'white' }}
               className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
               <Sparkle size={11} weight="fill" style={{ color: '#FCD34D' }} />
-              1.063 woningen op Curaçao
+              {count ? `${count} woningen op Curaçao` : 'Live woningaanbod Curaçao'}
             </span>
           </motion.div>
 
@@ -165,7 +226,7 @@ export default function HomePage() {
       <section style={{ background: `linear-gradient(90deg, ${TEAL} 0%, #004D5E 100%)`, padding: '24px 0' }}>
         <div className="max-w-[1200px] mx-auto px-5 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {STATS.map(({ value, label }, i) => (
+            {stats.map(({ value, label }, i) => (
               <motion.div key={label} {...slideUp(i * 0.05)} className="text-center md:text-left">
                 <p style={{ fontWeight: 800, letterSpacing: '-0.03em', color: '#5EEAD4' }} className="text-2xl md:text-3xl">{value}</p>
                 <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-sm mt-0.5">{label}</p>
@@ -175,6 +236,95 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ─────────── PREMIUM 3D-TOURS ─────────── */}
+      {scanListings.length > 0 && (
+        <section style={{ padding: '64px 0 56px', background: DARK, position: 'relative', overflow: 'hidden' }}>
+          <div style={{
+            position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)',
+            width: '60%', height: '120%',
+            background: 'radial-gradient(ellipse at center, rgba(212,162,76,0.10) 0%, transparent 60%)',
+            pointerEvents: 'none', zIndex: 0,
+          }} />
+          <div className="max-w-[1200px] mx-auto px-5 lg:px-8" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="flex items-end justify-between mb-8">
+              <motion.div {...slideUp(0)}>
+                <p style={{ color: GOLD, fontWeight: 600, letterSpacing: '0.1em' }}
+                  className="text-xs uppercase mb-2 flex items-center gap-1.5">
+                  <Cube size={11} weight="fill" />
+                  Premium 3D-tours
+                </p>
+                <h2 style={{ color: 'white', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1 }}
+                  className="text-3xl md:text-4xl">
+                  Bekijk woningen <span style={{ color: GOLD }}>zonder afspraak</span>
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,0.55)' }} className="text-sm md:text-base mt-3 max-w-[520px]">
+                  Loop fotorealistisch door de woning vanuit je browser — elke kamer, elke hoek, zonder een makelaar te bellen.
+                </p>
+              </motion.div>
+              <motion.div {...slideUp(0.05)}>
+                <Link to="/search?scan=1"
+                  style={{ color: GOLD, fontWeight: 600, border: '1.5px solid rgba(212,162,76,0.45)' }}
+                  className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm hover:bg-amber-900/20 transition-colors">
+                  Alle 3D-tours <ArrowRight size={13} weight="bold" />
+                </Link>
+              </motion.div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+              {scanListings.slice(0, 4).map((listing, i) => (
+                <motion.div key={listing.id} {...slideUp(i * 0.05)}>
+                  <Link to={`/listing/${listing.id}`}
+                    className="block group relative overflow-hidden rounded-2xl"
+                    style={{
+                      aspectRatio: '4/5', background: '#0B1120',
+                      boxShadow: '0 0 0 1.5px ' + GOLD + ', 0 8px 28px rgba(212,162,76,0.18)',
+                    }}>
+                    <img src={listingImage(listing)} alt=""
+                      onError={(e) => {
+                        if (e.currentTarget.dataset.fb !== '1') {
+                          e.currentTarget.dataset.fb = '1'
+                          e.currentTarget.src = neighborhoodFallback(listing)
+                        }
+                      }}
+                      referrerPolicy="no-referrer"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="transition-transform duration-700 group-hover:scale-105" />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.20) 50%, transparent 80%)' }} />
+                    <div style={{ position: 'absolute', top: 12, left: 12 }}>
+                      <span style={{
+                        background: 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)',
+                        color: '#1F1407',
+                        boxShadow: '0 2px 6px rgba(212,162,76,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
+                      }}
+                        className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wide flex items-center gap-1">
+                        <Cube size={10} weight="fill" />3D Tour
+                      </span>
+                    </div>
+                    <div style={{
+                      position: 'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: '50%',
+                      background: 'rgba(9,9,11,0.6)', backdropFilter: 'blur(8px)', border: `1px solid ${GOLD}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <ArrowUpRight size={14} weight="bold" style={{ color: GOLD }} />
+                    </div>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 14 }}>
+                      <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>
+                        {listing.neighborhood || listing.city || 'Curaçao'}
+                      </p>
+                      <p style={{ color: 'white', fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: 6 }}>
+                        {formatPrice(listing.price, listing.listing_type)}
+                      </p>
+                      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 1.3 }} className="line-clamp-1">
+                        {listing.title}
+                      </p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─────────── FEATURED LISTINGS ─────────── */}
       <section style={{ padding: '80px 0', background: DARK2 }}>
         <div className="max-w-[1200px] mx-auto px-5 lg:px-8">
@@ -182,7 +332,7 @@ export default function HomePage() {
             <motion.div {...slideUp(0)}>
               <p style={{ color: '#5EEAD4', fontWeight: 600, letterSpacing: '0.1em' }} className="text-xs uppercase mb-2">Uitgelichte woningen</p>
               <h2 style={{ color: 'white', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1 }} className="text-3xl md:text-4xl">
-                Curatorisch geselecteerd
+                Dagelijks bijgewerkt
               </h2>
             </motion.div>
             <motion.div {...slideUp(0.05)}>
@@ -192,13 +342,37 @@ export default function HomePage() {
               </Link>
             </motion.div>
           </div>
-          {/* Bento grid: tall left + 2 stacked right */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gridTemplateRows: 'auto auto', gap: 12 }}
-            className="hidden md:grid">
-            {featured[0] && <motion.div {...slideUp(0)} style={{ gridRow: '1 / 3' }}><FeaturedCard listing={featured[0]} large /></motion.div>}
-            {featured[1] && <motion.div {...slideUp(0.08)}><FeaturedCard listing={featured[1]} /></motion.div>}
-            {featured[2] && <motion.div {...slideUp(0.14)}><FeaturedCard listing={featured[2]} /></motion.div>}
-          </div>
+          {/* Bento grid: tall left + 3 stacked right */}
+          {featured.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', gap: 10, height: 620 }}
+              className="hidden md:grid">
+              {featured[0] && (
+                <motion.div {...slideUp(0)} style={{ gridRow: '1 / 4', gridColumn: '1' }}>
+                  <FeaturedCard listing={featured[0]} large />
+                </motion.div>
+              )}
+              {featured[1] && (
+                <motion.div {...slideUp(0.07)} style={{ gridRow: '1', gridColumn: '2', height: '100%' }}>
+                  <FeaturedCard listing={featured[1]} />
+                </motion.div>
+              )}
+              {featured[2] && (
+                <motion.div {...slideUp(0.12)} style={{ gridRow: '2', gridColumn: '2', height: '100%' }}>
+                  <FeaturedCard listing={featured[2]} />
+                </motion.div>
+              )}
+              {featured[3] && (
+                <motion.div {...slideUp(0.17)} style={{ gridRow: '3', gridColumn: '2', height: '100%' }}>
+                  <FeaturedCard listing={featured[3]} />
+                </motion.div>
+              )}
+            </div>
+          ) : (
+            <div style={{ height: 620, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              className="hidden md:flex">
+              <p style={{ color: 'rgba(255,255,255,0.3)' }}>Woningen laden…</p>
+            </div>
+          )}
           <div className="md:hidden flex gap-4 overflow-x-auto pb-4 -mx-5 px-5">
             {featured.map(l => (
               <div key={l.id} style={{ minWidth: 280, flexShrink: 0 }}><FeaturedCard listing={l} /></div>
@@ -235,7 +409,6 @@ export default function HomePage() {
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px' }}>
                     <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 3 }}>{n.region}</p>
                     <p style={{ color: 'white', fontWeight: 700, fontSize: 19, letterSpacing: '-0.02em', lineHeight: 1.1 }}>{n.name}</p>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 3 }}>{n.listings} woningen</p>
                   </div>
                   <div style={{ position: 'absolute', top: 14, right: 14, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}
                     className="group-hover:opacity-100">
@@ -262,11 +435,15 @@ export default function HomePage() {
             </Link>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
-            {recent.map((listing, i) => (
-              <motion.div key={listing.id} {...slideUp(i * 0.07)}>
-                <MiniCard listing={listing} />
-              </motion.div>
-            ))}
+            {recent.length > 0
+              ? recent.map((listing, i) => (
+                  <motion.div key={listing.id} {...slideUp(i * 0.07)}>
+                    <MiniCard listing={listing} />
+                  </motion.div>
+                ))
+              : Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} style={{ height: 260, borderRadius: 14, background: '#161F2E', opacity: 0.4 }} />
+                ))}
           </div>
         </div>
       </section>
@@ -310,35 +487,42 @@ export default function HomePage() {
 
 function FeaturedCard({ listing, large }) {
   const [hovered, setHovered] = useState(false)
-  const img = listing.images?.[0] || `https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80`
+  const [img, setImg] = useState(() => listingImage(listing))
+  const onImgError = () => {
+    setImg(NB_IMAGES[listing?.neighborhood] || NB_IMAGES.default)
+  }
 
   return (
     <Link to={`/listing/${listing.id}`}
       className="block relative overflow-hidden rounded-2xl group"
-      style={{ aspectRatio: large ? '4/5' : '16/9', height: large ? '100%' : 'auto' }}
+      style={{ width: '100%', height: '100%' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}>
-      <div style={{
-        background: `url(${img}) center/cover`,
-        position: 'absolute', inset: 0,
-        transform: hovered ? 'scale(1.04)' : 'scale(1)',
-        transition: 'transform 0.7s cubic-bezier(0.22,1,0.36,1)',
-      }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.05) 55%)' }} />
+      <img src={img} alt={listing.title} onError={onImgError}
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center',
+          transform: hovered ? 'scale(1.04)' : 'scale(1)',
+          transition: 'transform 0.7s cubic-bezier(0.22,1,0.36,1)',
+        }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.05) 55%)' }} />
       <div style={{ position: 'absolute', top: 12, left: 12 }}>
         <span style={{ background: CORAL, color: 'white', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           Uitgelicht
         </span>
       </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: large ? 24 : 16 }}>
-        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
-          {listing.neighborhood}
-        </p>
-        <p style={{ color: 'white', fontWeight: 700, fontSize: large ? 22 : 16, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: large ? 24 : 14 }}>
+        {listing.neighborhood && (
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
+            {listing.neighborhood}
+          </p>
+        )}
+        <p style={{ color: 'white', fontWeight: 700, fontSize: large ? 22 : 15, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 8 }}
+          className="line-clamp-2">
           {listing.title}
         </p>
         <div className="flex items-center justify-between">
-          <p style={{ color: '#5EEAD4', fontWeight: 700, fontSize: large ? 20 : 15, letterSpacing: '-0.02em' }}>
+          <p style={{ color: '#5EEAD4', fontWeight: 700, fontSize: large ? 20 : 14, letterSpacing: '-0.02em' }}>
             {formatPrice(listing.price, listing.listing_type)}
           </p>
           <div className="flex items-center gap-3">
@@ -353,7 +537,7 @@ function FeaturedCard({ listing, large }) {
 
 function MiniCard({ listing }) {
   const [hovered, setHovered] = useState(false)
-  const img = listing.images?.[0] || `https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80`
+  const [img, setImg] = useState(() => listingImage(listing))
 
   return (
     <Link to={`/listing/${listing.id}`}
@@ -369,6 +553,7 @@ function MiniCard({ listing }) {
       }}>
       <div style={{ aspectRatio: '16/10', overflow: 'hidden' }}>
         <img src={img} alt={listing.title}
+          onError={() => setImg(NB_IMAGES[listing?.neighborhood] || NB_IMAGES.default)}
           style={{ width: '100%', height: '100%', objectFit: 'cover',
             transform: hovered ? 'scale(1.06)' : 'scale(1)', transition: 'transform 0.5s ease' }} />
       </div>
@@ -378,7 +563,7 @@ function MiniCard({ listing }) {
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>
           <MapPin size={11} weight="fill" style={{ color: '#5EEAD4' }} />
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{listing.neighborhood}</span>
+          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{listing.neighborhood || listing.source_id}</span>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, lineHeight: 1.4, marginBottom: 10 }} className="line-clamp-1">
           {listing.title}
@@ -387,6 +572,9 @@ function MiniCard({ listing }) {
           {listing.bedrooms && <span>{listing.bedrooms} bed</span>}
           {listing.bathrooms && <span>{listing.bathrooms} bad</span>}
           {listing.area_sqm && <span>{listing.area_sqm} m²</span>}
+          {!listing.bedrooms && !listing.area_sqm && (
+            <span style={{ color: 'rgba(255,255,255,0.25)' }}>{listing.source_id}</span>
+          )}
         </div>
       </div>
     </Link>

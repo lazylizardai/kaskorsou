@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Heart, Bed, Bathtub, ArrowsOut, MapPin,
-  CaretLeft, CaretRight, ShareNetwork,
+  CaretLeft, CaretRight, ShareNetwork, Cube,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { hasActiveScan } from '../lib/scan'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
+const GOLD = '#D4A24C'
 
 function formatPrice(price, type) {
   if (!price) return 'Prijs op aanvraag'
@@ -24,6 +26,7 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
   const { favoriteIds, toggleFavorite } = useAuth()
 
   const isFav = favoriteIds.has(listing.id)
+  const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
 
   const FALLBACKS = {
     villa:     'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=600&fit=crop',
@@ -63,8 +66,12 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
       style={{
         boxShadow: highlighted
           ? `0 0 0 2px ${TEAL}, 0 8px 24px rgba(0,107,125,0.18)`
-          : hovered ? '0 8px 24px rgba(0,0,0,0.10)' : '0 1px 2px rgba(0,0,0,0.06)',
-        transform: highlighted ? 'translateY(-2px)' : 'none',
+          : hasScan
+            ? hovered
+              ? `0 0 0 1.5px ${GOLD}, 0 12px 32px rgba(212,162,76,0.32)`
+              : `0 0 0 1.5px ${GOLD}, 0 4px 14px rgba(212,162,76,0.16)`
+            : hovered ? '0 8px 24px rgba(0,0,0,0.10)' : '0 1px 2px rgba(0,0,0,0.06)',
+        transform: highlighted || (hasScan && hovered) ? 'translateY(-2px)' : 'none',
         transition: 'all 0.2s ease',
       }}
       className="group bg-white rounded-2xl overflow-hidden border border-zinc-100"
@@ -128,10 +135,34 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-1.5">
+            {hasScan && <ScanBadge />}
             {listing.is_new && <Badge label="Nieuw" color={TEAL} />}
-            {listing.is_featured && <Badge label="Uitgelicht" color={CORAL} />}
+            {listing.is_featured && !hasScan && <Badge label="Uitgelicht" color={CORAL} />}
             {listing.listing_type === 'rent' && <Badge label="Huur" color="#09090B" />}
           </div>
+
+          {/* 3D-tour hover hint */}
+          {hasScan && (
+            <AnimatePresence>
+              {hovered && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.18 }}
+                  style={{
+                    position: 'absolute', bottom: 12, left: 12, right: 12,
+                    background: 'rgba(9,9,11,0.85)', backdropFilter: 'blur(8px)',
+                    border: `1px solid ${GOLD}`, borderRadius: 10, padding: '8px 12px',
+                    color: 'white', fontSize: 12, fontWeight: 600,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Cube size={14} weight="fill" style={{ color: GOLD }} />
+                    Bekijk in 3D
+                  </span>
+                  <span style={{ color: GOLD, fontSize: 11 }}>→</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
 
         {/* Content */}
@@ -165,6 +196,19 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
         </div>
       </Link>
     </motion.div>
+  )
+}
+
+function ScanBadge() {
+  return (
+    <span style={{
+      background: 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)',
+      color: '#1F1407',
+      boxShadow: '0 2px 6px rgba(212,162,76,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
+    }}
+      className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wide flex items-center gap-1">
+      <Cube size={10} weight="fill" />3D Tour
+    </span>
   )
 }
 

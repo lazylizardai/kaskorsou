@@ -8,6 +8,7 @@ import FilterSidebar from '../components/FilterSidebar'
 import ListingCard from '../components/ListingCard'
 import MapView from '../components/MapView'
 import { getListings } from '../lib/supabase'
+import { hasActiveScan } from '../lib/scan'
 
 const TEAL = '#006B7D'
 const INK = '#09090B'
@@ -55,6 +56,7 @@ export default function SearchPage() {
   const [filters, setFilters] = useState({
     listingType: 'sale', priceMin: 0, priceMax: 5000000,
     bedrooms: 0, bathrooms: 0, type: '', neighborhood: '', searchQuery: '',
+    scanOnly: false,
   })
 
   const sortRef = useRef(null)
@@ -86,6 +88,7 @@ export default function SearchPage() {
       if (filters.bedrooms && l.bedrooms < filters.bedrooms) return false
       if (filters.type && l.property_type !== filters.type) return false
       if (filters.neighborhood && l.neighborhood !== filters.neighborhood) return false
+      if (filters.scanOnly && !hasActiveScan(l)) return false
       if (filters.searchQuery) {
         const q = filters.searchQuery.toLowerCase()
         const s = `${l.title} ${l.neighborhood} ${l.address || ''}`.toLowerCase()
@@ -94,8 +97,18 @@ export default function SearchPage() {
       return true
     })
     if (sort === 'price_asc') result = [...result].sort((a, b) => a.price - b.price)
-    if (sort === 'price_desc') result = [...result].sort((a, b) => b.price - a.price)
-    if (sort === 'newest') result = [...result].filter(l => l.is_new).concat(result.filter(l => !l.is_new))
+    else if (sort === 'price_desc') result = [...result].sort((a, b) => b.price - a.price)
+    else if (sort === 'newest') result = [...result].filter(l => l.is_new).concat(result.filter(l => !l.is_new))
+    else {
+      // Standaard: actieve 3D-scans eerst, dan uitgelicht, dan op quality_score
+      result = [...result].sort((a, b) => {
+        const aScan = hasActiveScan(a) ? 1 : 0
+        const bScan = hasActiveScan(b) ? 1 : 0
+        if (aScan !== bScan) return bScan - aScan
+        if (a.is_featured !== b.is_featured) return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0)
+        return (b.quality_score || 0) - (a.quality_score || 0)
+      })
+    }
     return result
   }, [listings, filters, sort])
 
@@ -273,7 +286,7 @@ export default function SearchPage() {
 
       {/* ── Mobile floating map/list toggle ── */}
       <motion.button
-        className="md:hidden fixed z-40"
+        className="md:hidden fixed z-[1000]"
         style={{
           bottom: 24, left: '50%', transform: 'translateX(-50%)',
           background: INK, color: 'white',

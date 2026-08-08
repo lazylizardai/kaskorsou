@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import { MOCK_LISTINGS } from '../data/mockListings'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://tbfjlfnahdqfbnpszyyj.supabase.co'
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiZmpsZm5haGRxZmJucHN6eXlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTI5NDEsImV4cCI6MjA4MTQ2ODk0MX0.fxtc0pIkUPpecYo5FDW8kmy3Y9VJUZy9T11TbHy6ZXo'
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
@@ -45,8 +46,14 @@ export async function getListings(filters = {}) {
 }
 
 export async function getListingById(id) {
-  const query = supabase.from('kas_listings').select('*').eq('id', id).single()
-  return withMockFallback(query, MOCK_LISTINGS.find(l => l.id === id) || null)
+  try {
+    const { data, error } = await supabase.from('kas_listings').select('*').eq('id', id).single()
+    if (error) throw error
+    return data ? normalizeListings([data])[0] : MOCK_LISTINGS.find(l => l.id === id) || null
+  } catch (e) {
+    console.warn('[KasKorsou] getListingById failed, using mock:', e.message)
+    return MOCK_LISTINGS.find(l => l.id === id) || null
+  }
 }
 
 export async function getSourceStats() {

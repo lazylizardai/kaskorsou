@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react'
-import { Sliders, CaretDown, ArrowCounterClockwise, MagnifyingGlass } from '@phosphor-icons/react'
+import { Sliders, CaretDown, ArrowCounterClockwise, MagnifyingGlass, Cube } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
 const INK = '#09090B'
+const GOLD = '#D4A24C'
 
 const PROPERTY_TYPES = [
   { value: 'house', label: 'Huis' },
@@ -85,6 +86,7 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
       priceMin: 0, priceMax: 5000000,
       bedrooms: 0, bathrooms: 0,
       type: '', neighborhood: '', searchQuery: '',
+      scanOnly: false,
     })
   }
 
@@ -121,6 +123,50 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
           <span style={{ color: TEAL, fontWeight: 700 }}>{resultCount}</span> woningen gevonden
         </p>
       )}
+
+      {/* 3D-tours toggle */}
+      <button
+        onClick={() => onFilterChange({ ...filters, scanOnly: !filters.scanOnly })}
+        style={{
+          width: '100%', marginBottom: 16, padding: '10px 12px', borderRadius: 10,
+          border: filters.scanOnly ? `1.5px solid ${GOLD}` : '1px solid #E4E4E7',
+          background: filters.scanOnly
+            ? 'linear-gradient(135deg, rgba(232,181,71,0.12) 0%, rgba(212,162,76,0.06) 100%)'
+            : 'white',
+          display: 'flex', alignItems: 'center', gap: 10,
+          textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
+        }}>
+        <span style={{
+          width: 28, height: 28, borderRadius: 7,
+          background: filters.scanOnly
+            ? 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)'
+            : '#F4F4F5',
+          color: filters.scanOnly ? '#1F1407' : '#A1A1AA',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0, transition: 'all 0.15s',
+        }}>
+          <Cube size={14} weight="fill" />
+        </span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: 'block', color: INK, fontWeight: 600, fontSize: 13, lineHeight: 1.2 }}>
+            Alleen 3D-tours
+          </span>
+          <span style={{ display: 'block', color: '#71717A', fontSize: 11, marginTop: 2 }}>
+            Bekijk woningen zonder afspraak
+          </span>
+        </span>
+        <span style={{
+          width: 32, height: 18, borderRadius: 99, position: 'relative',
+          background: filters.scanOnly ? GOLD : '#E4E4E7',
+          transition: 'background 0.15s', flexShrink: 0,
+        }}>
+          <span style={{
+            position: 'absolute', top: 2, left: filters.scanOnly ? 16 : 2,
+            width: 14, height: 14, borderRadius: '50%', background: 'white',
+            transition: 'left 0.18s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
+          }} />
+        </span>
+      </button>
 
       {/* Price */}
       <FilterSection title="Prijs">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { hasActiveScan } from '../lib/scan'
 
 const CURACAO_CENTER = [12.1696, -68.9900]
 const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
@@ -130,11 +131,20 @@ function buildPopupHTML(listing) {
 }
 
 // Price badge marker element
-function makePriceBadgeEl(price, listingType, isSelected) {
-  const label = fmtPriceBadge(price, listingType)
+function makePriceBadgeEl(listing, isSelected) {
+  const label = fmtPriceBadge(listing.price, listing.listing_type)
+  const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
   const el = document.createElement('div')
-  el.className = `kk-price-marker${isSelected ? ' selected' : ''}`
-  el.innerHTML = `<div class="kk-price-badge">${label}</div>`
+  const classes = ['kk-price-marker']
+  if (isSelected) classes.push('selected')
+  if (hasScan) classes.push('premium-scan')
+  el.className = classes.join(' ')
+  const cube = hasScan
+    ? `<svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor" style="margin-right:4px;flex-shrink:0">
+         <path d="M223.68,66.15,135.68,18a15.94,15.94,0,0,0-15.36,0l-88,48.17A16,16,0,0,0,24,80.21v95.58a16,16,0,0,0,8.32,14L120.32,238a15.91,15.91,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.21A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.78Zm96,129.57V133.78L216,90v85.78Z"/>
+       </svg>`
+    : ''
+  el.innerHTML = `<div class="kk-price-badge">${cube}${label}</div>`
   return el
 }
 
@@ -178,7 +188,8 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
       coordsRef.current[listing.id] = coords
 
       const isSelected = listing.id === selectedId
-      const el = makePriceBadgeEl(listing.price, listing.listing_type, isSelected)
+      const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
+      const el = makePriceBadgeEl(listing, isSelected)
 
       // Click: open popup + notify parent
       el.addEventListener('click', (e) => {
@@ -208,10 +219,10 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         icon: L.divIcon({
           html: el,
           className: '',
-          iconAnchor: [32, 16],
-          iconSize: [64, 32],
+          iconAnchor: [0, 0],
+          iconSize: [0, 0],
         }),
-        zIndexOffset: isSelected ? 1000 : 0,
+        zIndexOffset: isSelected ? 1000 : hasScan ? 500 : 0,
       }).addTo(mapRef.current)
 
       markersRef.current.push(m)
@@ -231,6 +242,8 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         /* Price badge markers */
         .kk-price-marker {
           cursor: pointer;
+          transform: translate(-50%, -50%);
+          display: inline-flex;
         }
         .kk-price-badge {
           background: #09090b;
@@ -254,6 +267,35 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
           background: #006B7D;
           transform: scale(1.15);
           box-shadow: 0 4px 16px rgba(0,107,125,0.55);
+        }
+        /* Premium 3D-tour markers — gold gradient + subtle pulse */
+        .kk-price-marker.premium-scan .kk-price-badge {
+          background: linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%);
+          color: #1F1407;
+          padding: 5px 13px 5px 9px;
+          font-weight: 800;
+          box-shadow: 0 3px 10px rgba(212,162,76,0.55), inset 0 1px 0 rgba(255,255,255,0.4);
+          display: inline-flex;
+          align-items: center;
+          animation: kk-pulse 2.6s ease-in-out infinite;
+        }
+        .kk-price-marker.premium-scan:hover .kk-price-badge {
+          background: linear-gradient(135deg, #F1C76A 0%, #E8B547 50%, #C9942F 100%);
+          color: #1F1407;
+          transform: scale(1.12);
+          box-shadow: 0 5px 16px rgba(212,162,76,0.7), inset 0 1px 0 rgba(255,255,255,0.5);
+          animation: none;
+        }
+        .kk-price-marker.premium-scan.selected .kk-price-badge {
+          background: linear-gradient(135deg, #F1C76A 0%, #E8B547 50%, #C9942F 100%);
+          color: #1F1407;
+          transform: scale(1.18);
+          box-shadow: 0 6px 20px rgba(212,162,76,0.75), inset 0 1px 0 rgba(255,255,255,0.55);
+          animation: none;
+        }
+        @keyframes kk-pulse {
+          0%, 100% { box-shadow: 0 3px 10px rgba(212,162,76,0.55), inset 0 1px 0 rgba(255,255,255,0.4); }
+          50%      { box-shadow: 0 4px 16px rgba(212,162,76,0.85), inset 0 1px 0 rgba(255,255,255,0.5); }
         }
         /* Popup styles */
         .kk-popup .leaflet-popup-content-wrapper {

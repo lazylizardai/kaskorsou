@@ -3,16 +3,96 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Heart, ShareNetwork, Bed, Bathtub, ArrowsOut,
   MapPin, Calendar, Buildings, Phone, Envelope,
-  CaretLeft, CaretRight, X, CheckCircle,
+  CaretLeft, CaretRight, X, CheckCircle, Cube, Image,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getListingById } from '../lib/supabase'
+import { hasActiveScan, buildScanEmbedUrl } from '../lib/scan'
 import { useAuth } from '../context/AuthContext'
 import AuthModal from '../components/AuthModal'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
 const INK = '#09090B'
+const GOLD = '#D4A24C'
+
+function TourSection({ listing }) {
+  const [tab, setTab] = useState('tour')
+  const embedUrl = buildScanEmbedUrl(listing.scan_url)
+  const hasTour = !!embedUrl
+
+  return (
+    <div>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button onClick={() => setTab('tour')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
+            borderRadius: 999, fontSize: 13, fontWeight: 600,
+            background: tab === 'tour'
+              ? 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)'
+              : '#F4F4F5',
+            color: tab === 'tour' ? '#1F1407' : '#52525B',
+            border: tab === 'tour' ? `1px solid ${GOLD}` : '1px solid #E4E4E7',
+            boxShadow: tab === 'tour' ? '0 2px 8px rgba(212,162,76,0.35)' : 'none',
+            transition: 'all 0.15s',
+          }}>
+          <Cube size={13} weight="fill" />3D Tour
+        </button>
+        <button onClick={() => setTab('photos')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
+            borderRadius: 999, fontSize: 13, fontWeight: 600,
+            background: tab === 'photos' ? INK : '#F4F4F5',
+            color: tab === 'photos' ? 'white' : '#52525B',
+            border: '1px solid ' + (tab === 'photos' ? INK : '#E4E4E7'),
+            transition: 'all 0.15s',
+          }}>
+          <Image size={13} weight="fill" />Foto's ({listing.images?.length || 0})
+        </button>
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#A1A1AA', alignSelf: 'center' }}>
+          Powered by 3D Gaussian Splatting
+        </span>
+      </div>
+
+      {tab === 'tour' && hasTour ? (
+        <div style={{
+          position: 'relative', height: 520, borderRadius: 16, overflow: 'hidden',
+          boxShadow: `0 0 0 1.5px ${GOLD}, 0 12px 36px rgba(212,162,76,0.20)`,
+          background: '#0B1120',
+        }}>
+          <iframe
+            src={embedUrl}
+            title={`3D Tour: ${listing.title}`}
+            allow="fullscreen; xr-spatial-tracking; gyroscope; accelerometer"
+            allowFullScreen
+            style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
+          />
+          <div style={{
+            position: 'absolute', top: 12, left: 12,
+            background: 'rgba(9,9,11,0.7)', backdropFilter: 'blur(8px)',
+            border: `1px solid ${GOLD}`, color: 'white', padding: '5px 10px',
+            borderRadius: 8, fontSize: 11, fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <Cube size={11} weight="fill" style={{ color: GOLD }} />
+            Live 3D Tour
+          </div>
+        </div>
+      ) : tab === 'tour' && !hasTour ? (
+        <div style={{
+          height: 280, borderRadius: 16, background: '#F4F4F5',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#71717A', fontSize: 13,
+        }}>
+          3D Tour wordt binnenkort toegevoegd
+        </div>
+      ) : (
+        <Gallery images={listing.images} />
+      )}
+    </div>
+  )
+}
 
 function formatPrice(price, type) {
   if (type === 'rent') return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}/mnd`
@@ -118,8 +198,23 @@ export default function DetailPage() {
       const data = await getListingById(id)
       setListing(data)
       setLoading(false)
+      if (data) {
+        const priceStr = data.price >= 1000000
+          ? `ANG ${(data.price / 1000000).toFixed(1)}M`
+          : `ANG ${new Intl.NumberFormat('nl-NL').format(data.price)}`
+        const title = `${data.title} — ${priceStr} | KasKorsou`
+        const desc = `${data.property_type || 'Woning'} in ${data.neighborhood || 'Curaçao'} voor ${priceStr}.${data.bedrooms ? ' ' + data.bedrooms + ' slaapkamers,' : ''}${data.area_sqm ? ' ' + data.area_sqm + ' m².' : ''} Bekijk op KasKorsou.`
+        document.title = title
+        document.querySelector('meta[name="description"]')?.setAttribute('content', desc)
+        document.querySelector('meta[property="og:title"]')?.setAttribute('content', title)
+        document.querySelector('meta[property="og:description"]')?.setAttribute('content', desc)
+        document.querySelector('meta[property="og:url"]')?.setAttribute('content', window.location.href)
+      }
     }
     load()
+    return () => {
+      document.title = 'KasKorsou — Vastgoed & Woningen op Curaçao'
+    }
   }, [id])
 
   if (loading) return (
@@ -157,8 +252,10 @@ export default function DetailPage() {
           <ArrowLeft size={15} weight="bold" /> Terug naar zoeken
         </button>
 
-        {/* Gallery */}
-        <Gallery images={listing.images} />
+        {/* Tour of gallery */}
+        {hasActiveScan(listing)
+          ? <TourSection listing={listing} />
+          : <Gallery images={listing.images} />}
 
         {/* Content grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 48, marginTop: 40, alignItems: 'start' }}
@@ -169,11 +266,25 @@ export default function DetailPage() {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
               <div>
-                {listing.is_new && (
-                  <span style={{ background: '#E6F2F4', color: TEAL, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-block', marginBottom: 8 }}>
-                    Nieuw
-                  </span>
-                )}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                  {hasActiveScan(listing) && (
+                    <span style={{
+                      background: 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)',
+                      color: '#1F1407',
+                      boxShadow: '0 2px 6px rgba(212,162,76,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
+                      fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                    }}>
+                      <Cube size={11} weight="fill" />3D Tour
+                    </span>
+                  )}
+                  {listing.is_new && (
+                    <span style={{ background: '#E6F2F4', color: TEAL, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-block' }}>
+                      Nieuw
+                    </span>
+                  )}
+                </div>
                 <h1 style={{ fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1, color: INK, fontSize: 28 }}>
                   {listing.title}
                 </h1>
