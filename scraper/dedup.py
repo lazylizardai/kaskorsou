@@ -179,7 +179,10 @@ class CrossSourceDedup:
                         continue
                     p1, p2 = float(l1["price"]), float(l2["price"])
                     diff = abs(p1 - p2) / max(p1, p2)
-                    conf = 0.88 - diff  # zonder extra bewijs blijft dit onder de auto-drempel
+                    # Bewust ONDER de auto-drempel (0.88): nieuwbouwprojecten hebben
+                    # meerdere units met identieke prijs/specs. Pas mét een tweede
+                    # strategie (foto, url, geo) komt het paar over de drempel.
+                    conf = 0.86 - diff
                     out.append(Match(l1["id"], l2["id"], conf, "price_specs",
                                      f"prijs/beds/opp-bucket, prijsverschil {diff:.1%}"))
         return out
