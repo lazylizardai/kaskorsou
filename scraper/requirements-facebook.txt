@@ -1,0 +1,6 @@
+# Alleen nodig voor de Facebook Marketplace-scraper (lokaal, niet in CI).
+# Installatie:
+#   pip install -r requirements-facebook.txt
+#   python -m playwright install chromium
+-r requirements.txt
+playwright==1.44.0

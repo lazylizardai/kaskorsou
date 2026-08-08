@@ -35,16 +35,15 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r scraper/requirements.txt
 
-      - name: Install Playwright Chromium
-        run: python -m playwright install chromium --with-deps
-
       - name: Run scraper orchestrator
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          # Facebook scraper requires headless=False + local cookies — runs via Windows Task Scheduler instead
-          DEFAULT_SOURCES="remax,athome,caresto,livinggoed"
+          # Facebook scraper requires Playwright + local cookies — runs via Windows Task Scheduler instead
+          # sunbelt & era zijn offline (DNS dood). century21 zit achter AWS WAF:
+          # levert ~72 listings via requests, daarna 403 (volledige set vereist een browser).
+          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,century21"
           SOURCES_ARG=""
           DRY_RUN_ARG=""
           if [ -n "${{ github.event.inputs.sources }}" ]; then

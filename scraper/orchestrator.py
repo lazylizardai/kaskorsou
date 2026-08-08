@@ -18,6 +18,9 @@ from .scrapers import (
     Century21Scraper,
     ERAScraper,
     FacebookScraper,
+    AthomeScraper,
+    CarestoScraper,
+    LivinggoedScraper,
 )
 
 logging.basicConfig(
@@ -28,11 +31,14 @@ logger = logging.getLogger("orchestrator")
 
 # Priority order (highest first)
 ALL_SCRAPERS = [
-    FacebookScraper,   # priority 10
-    RemaxScraper,      # priority 9
-    SunbeltScraper,    # priority 9
-    Century21Scraper,  # priority 8
-    ERAScraper,        # priority 7
+    FacebookScraper,     # priority 10
+    RemaxScraper,        # priority 9
+    AthomeScraper,       # priority 9
+    SunbeltScraper,      # priority 9
+    CarestoScraper,      # priority 8
+    LivinggoedScraper,   # priority 8
+    Century21Scraper,    # priority 8
+    ERAScraper,          # priority 7
 ]
 
 
@@ -187,6 +193,18 @@ def main():
         action="store_true",
         help="Scrape but do not write to Supabase",
     )
+    parser.add_argument(
+        "--dedup", action="store_true", default=None,
+        help="Run cross-source duplicate detection after scraping (default: on for full runs)",
+    )
+    parser.add_argument(
+        "--no-dedup", dest="dedup", action="store_false",
+        help="Skip duplicate detection",
+    )
+    parser.add_argument(
+        "--dedup-only", action="store_true",
+        help="Skip scraping, only run duplicate detection",
+    )
     args = parser.parse_args()
 
     # Filter scrapers if --sources specified
@@ -199,6 +217,12 @@ def main():
             return
 
     sb = get_supabase()
+
+    if args.dedup_only:
+        from .dedup import run_dedup
+        run_dedup(sb, dry_run=args.dry_run)
+        return
+
     results = []
 
     for scraper_cls in selected:
@@ -222,6 +246,16 @@ def main():
         total_updated += r["updated"]
 
     logger.info(f"TOTAL: {total_found} found | +{total_new} new | ~{total_updated} updated")
+
+    # Cross-source dedup: standaard aan bij een volledige run, of expliciet via --dedup
+    run_dedup_now = args.dedup if args.dedup is not None else (args.sources is None)
+    if run_dedup_now and not args.dry_run:
+        from .dedup import run_dedup
+        try:
+            n_groups, n_marked = run_dedup(sb)
+            logger.info(f"DEDUP: {n_groups} groepen, {n_marked} duplicaten gemarkeerd")
+        except Exception as e:
+            logger.error(f"Dedup failed (scrape-resultaat blijft geldig): {e}")
 
 
 if __name__ == "__main__":

@@ -20,9 +20,10 @@ SOURCES = {
         "priority": 9,
     },
     "century21": {
+        "id": "century21",
         "name": "Century 21 Curacao",
-        "base_url": "https://www.century21curacao.com",
-        "listings_url": "https://www.century21curacao.com/properties",
+        "base_url": "https://century21numberone.com",
+        "listings_url": "https://century21numberone.com/en/s/for-sale/",
         "type": "traditional",
         "priority": 8,
     },
@@ -39,6 +40,30 @@ SOURCES = {
         "listings_url": "https://www.facebook.com/marketplace/curacao/propertyrentals",
         "type": "claude_computer_use",
         "priority": 10,
+    },
+    "athome": {
+        "id": "athome",
+        "name": "At Home Curaçao",
+        "base_url": "https://athomecuracao.com",
+        "listings_url": "https://athomecuracao.com/kopen/",
+        "type": "traditional",
+        "priority": 9,
+    },
+    "caresto": {
+        "id": "caresto",
+        "name": "Caresto Real Estate",
+        "base_url": "https://www.caresto.com",
+        "listings_url": "https://www.caresto.com/wp-json/wp/v2/caresto_property",
+        "type": "traditional",
+        "priority": 8,
+    },
+    "livinggoed": {
+        "id": "livinggoed",
+        "name": "Livinggoed Real Estate",
+        "base_url": "https://livinggoed.com",
+        "listings_url": "https://livinggoed.com/property-sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
     },
 }
 
