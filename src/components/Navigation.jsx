@@ -73,8 +73,8 @@ export default function Navigation() {
               className="w-9 h-9"
             />
             <span className="hidden sm:block text-lg font-bold tracking-tight" style={{ letterSpacing: '-0.02em' }}>
-              <span style={{ color: onDark ? '#FFFFFF' : '#003087' }}>Kas</span>
-              <span style={{ color: onDark ? '#5EEAD4' : '#0A7EA4' }}>Kòrsou</span>
+              <span style={{ color: onDark ? '#FFFFFF' : INK }}>Kas</span>
+              <span style={{ color: onDark ? '#5EEAD4' : TEAL }}>Kòrsou</span>
             </span>
           </Link>
 
