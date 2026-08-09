@@ -3,11 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Heart, ShareNetwork, Bed, Bathtub, ArrowsOut,
   MapPin, Calendar, Buildings, Phone, Envelope,
-  CaretLeft, CaretRight, X, CheckCircle, Cube, Image,
+  CaretLeft, CaretRight, X, CheckCircle, Cube, Image, Play,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getListingById } from '../lib/supabase'
 import { hasActiveScan, buildScanEmbedUrl } from '../lib/scan'
+import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
 import { useAuth } from '../context/AuthContext'
 import AuthModal from '../components/AuthModal'
 import { formatPrice } from '../lib/currency'
@@ -17,29 +18,47 @@ const CORAL = '#E8672A'
 const INK = '#09090B'
 const GOLD = '#D4A24C'
 
-function TourSection({ listing }) {
-  const [tab, setTab] = useState('tour')
+function TourSection({ listing, hasScan, hasVideo }) {
+  const [tab, setTab] = useState(hasScan ? 'tour' : hasVideo ? 'video' : 'photos')
   const embedUrl = buildScanEmbedUrl(listing.scan_url)
   const hasTour = !!embedUrl
 
   return (
     <div>
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button onClick={() => setTab('tour')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
-            borderRadius: 999, fontSize: 13, fontWeight: 600,
-            background: tab === 'tour'
-              ? 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)'
-              : '#F4F4F5',
-            color: tab === 'tour' ? '#1F1407' : '#52525B',
-            border: tab === 'tour' ? `1px solid ${GOLD}` : '1px solid #E4E4E7',
-            boxShadow: tab === 'tour' ? '0 2px 8px rgba(212,162,76,0.35)' : 'none',
-            transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
-          }}>
-          <Cube size={13} weight="fill" />3D Tour
-        </button>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {hasScan && (
+          <button onClick={() => setTab('tour')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
+              borderRadius: 999, fontSize: 13, fontWeight: 600,
+              background: tab === 'tour'
+                ? 'linear-gradient(135deg, #E8B547 0%, #D4A24C 50%, #B5862E 100%)'
+                : '#F4F4F5',
+              color: tab === 'tour' ? '#1F1407' : '#52525B',
+              border: tab === 'tour' ? `1px solid ${GOLD}` : '1px solid #E4E4E7',
+              boxShadow: tab === 'tour' ? '0 2px 8px rgba(212,162,76,0.35)' : 'none',
+              transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
+            }}>
+            <Cube size={13} weight="fill" />3D Tour
+          </button>
+        )}
+        {hasVideo && (
+          <button onClick={() => setTab('video')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
+              borderRadius: 999, fontSize: 13, fontWeight: 600,
+              background: tab === 'video'
+                ? 'linear-gradient(135deg, #F0805A 0%, #E8672A 50%, #C24F1B 100%)'
+                : '#F4F4F5',
+              color: tab === 'video' ? 'white' : '#52525B',
+              border: tab === 'video' ? `1px solid ${CORAL}` : '1px solid #E4E4E7',
+              boxShadow: tab === 'video' ? '0 2px 8px rgba(232,103,42,0.30)' : 'none',
+              transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
+            }}>
+            <Play size={13} weight="fill" />Video Tour
+          </button>
+        )}
         <button onClick={() => setTab('photos')}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
@@ -51,9 +70,16 @@ function TourSection({ listing }) {
           }}>
           <Image size={13} weight="fill" />Foto's ({listing.images?.length || 0})
         </button>
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#A1A1AA', alignSelf: 'center' }}>
-          Powered by 3D Gaussian Splatting
-        </span>
+        {tab === 'tour' && (
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#A1A1AA', alignSelf: 'center' }}>
+            Powered by 3D Gaussian Splatting
+          </span>
+        )}
+        {tab === 'video' && (
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#A1A1AA', alignSelf: 'center' }}>
+            AI-gegenereerde cinematische video, geen live 3D-scan
+          </span>
+        )}
       </div>
 
       {tab === 'tour' && hasTour ? (
@@ -87,6 +113,31 @@ function TourSection({ listing }) {
           color: '#71717A', fontSize: 13,
         }}>
           3D Tour wordt binnenkort toegevoegd
+        </div>
+      ) : tab === 'video' && hasVideo ? (
+        <div style={{
+          position: 'relative', height: 520, borderRadius: 16, overflow: 'hidden',
+          boxShadow: `0 0 0 1.5px ${CORAL}, 0 12px 36px rgba(232,103,42,0.20)`,
+          background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <video
+            key={listing.video_url}
+            src={buildVideoStreamUrl(listing.video_url)}
+            controls
+            playsInline
+            poster={listing.images?.[0]}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#000' }}
+          />
+          <div style={{
+            position: 'absolute', top: 12, left: 12, pointerEvents: 'none',
+            background: 'rgba(9,9,11,0.7)', backdropFilter: 'blur(8px)',
+            border: `1px solid ${CORAL}`, color: 'white', padding: '5px 10px',
+            borderRadius: 8, fontSize: 11, fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <Play size={11} weight="fill" style={{ color: CORAL }} />
+            Video Tour
+          </div>
         </div>
       ) : (
         <Gallery images={listing.images} />
@@ -248,8 +299,8 @@ export default function DetailPage() {
         </button>
 
         {/* Tour of gallery */}
-        {hasActiveScan(listing)
-          ? <TourSection listing={listing} />
+        {(hasActiveScan(listing) || hasVideoTour(listing))
+          ? <TourSection listing={listing} hasScan={hasActiveScan(listing)} hasVideo={hasVideoTour(listing)} />
           : <Gallery images={listing.images} />}
 
         {/* Content grid */}
@@ -394,15 +445,13 @@ export default function DetailPage() {
                 )}
               </div>
 
-              {(listing.agent_name || listing.agent_company) && (
+              {listing.agent_name && (
                 <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #F4F4F5' }}>
                   <p style={{ color: '#A1A1AA', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                     Aangeboden door
                   </p>
-                  <p style={{ fontWeight: 600, color: INK, fontSize: 14 }}>
-                    {listing.agent_name || listing.agent_company}
-                  </p>
-                  {listing.agent_name && listing.agent_company && (
+                  <p style={{ fontWeight: 600, color: INK, fontSize: 14 }}>{listing.agent_name}</p>
+                  {listing.agent_company && (
                     <p style={{ color: '#71717A', fontSize: 12, marginTop: 2 }}>{listing.agent_company}</p>
                   )}
                 </div>
