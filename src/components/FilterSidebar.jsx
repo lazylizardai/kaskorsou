@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Sliders, CaretDown, ArrowCounterClockwise, MagnifyingGlass, Cube } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { USD_TO_XCG } from '../lib/currency'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
@@ -22,11 +23,16 @@ const NEIGHBORHOODS = [
   'Coral Estate', 'Piscadera', 'Lagun', 'Westpunt', 'Banda Abou',
 ]
 
+// Canonieke prijsfilter-eenheid is altijd USD (ongeacht wat er getoond wordt) —
+// zo tellen XCG-huizen ook correct mee in een USD-bereik en andersom.
+// Vaste koppeling: 1 USD = 1,79 XCG.
+const PRICE_SLIDER_MAX_USD = 2500000
+
 const PRICE_PRESETS = [
-  { label: '< ANG 250k', min: 0, max: 250000 },
-  { label: 'ANG 250k – 500k', min: 250000, max: 500000 },
-  { label: 'ANG 500k – 1M', min: 500000, max: 1000000 },
-  { label: 'ANG 1M+', min: 1000000, max: 10000000 },
+  { label: '< 150k', min: 0, max: 150000 },
+  { label: '150k – 300k', min: 150000, max: 300000 },
+  { label: '300k – 600k', min: 300000, max: 600000 },
+  { label: '600k+', min: 600000, max: PRICE_SLIDER_MAX_USD },
 ]
 
 function FilterSection({ title, defaultOpen = true, children }) {
@@ -57,14 +63,15 @@ function FilterSection({ title, defaultOpen = true, children }) {
   )
 }
 
-function PriceSlider({ label, min, max, value, onChange }) {
+function PriceSlider({ label, min, max, value, onChange, currency = 'USD' }) {
   const pct = ((value - min) / (max - min)) * 100
   const fmt = (v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${(v / 1000).toFixed(0)}k`
+  const symbol = currency === 'USD' ? '$' : 'XCG'
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ color: '#71717A', fontSize: 12 }}>{label}</span>
-        <span style={{ color: TEAL, fontWeight: 600, fontSize: 12 }}>ANG {fmt(value)}</span>
+        <span style={{ color: TEAL, fontWeight: 600, fontSize: 12 }}>{symbol} {fmt(value)}</span>
       </div>
       <div style={{ position: 'relative', height: 20, display: 'flex', alignItems: 'center' }}>
         <div style={{ position: 'absolute', left: 0, right: 0, height: 4, background: '#E4E4E7', borderRadius: 99 }} />
@@ -80,10 +87,14 @@ function PriceSlider({ label, min, max, value, onChange }) {
 }
 
 export default function FilterSidebar({ filters, onFilterChange, resultCount }) {
+  const [displayCcy, setDisplayCcy] = useState('USD')
+  const toDisplay = (usd) => displayCcy === 'USD' ? usd : Math.round(usd * USD_TO_XCG)
+  const fromDisplay = (v) => displayCcy === 'USD' ? v : Math.round(v / USD_TO_XCG)
+
   const handleReset = () => {
     onFilterChange({
       listingType: filters.listingType,
-      priceMin: 0, priceMax: 5000000,
+      priceMin: 0, priceMax: PRICE_SLIDER_MAX_USD,
       bedrooms: 0, bathrooms: 0,
       type: '', neighborhood: '', searchQuery: '',
       scanOnly: false,
@@ -170,10 +181,26 @@ export default function FilterSidebar({ filters, onFilterChange, resultCount }) 
 
       {/* Price */}
       <FilterSection title="Prijs">
-        <PriceSlider label="Minimum" min={0} max={5000000} value={filters.priceMin || 0}
-          onChange={(v) => onFilterChange({ ...filters, priceMin: v })} />
-        <PriceSlider label="Maximum" min={0} max={5000000} value={filters.priceMax || 5000000}
-          onChange={(v) => onFilterChange({ ...filters, priceMax: v })} />
+        <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+          {['USD', 'XCG'].map((c) => (
+            <button key={c} onClick={() => setDisplayCcy(c)}
+              style={{
+                flex: 1, padding: '5px 0', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                border: displayCcy === c ? `1.5px solid ${TEAL}` : '1px solid #E4E4E7',
+                background: displayCcy === c ? '#E6F2F4' : 'white',
+                color: displayCcy === c ? TEAL : '#71717A',
+                transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
+              }}>
+              {c === 'USD' ? '$ USD' : 'XCG'}
+            </button>
+          ))}
+        </div>
+        <PriceSlider label="Minimum" min={0} max={toDisplay(PRICE_SLIDER_MAX_USD)}
+          value={toDisplay(filters.priceMin || 0)} currency={displayCcy}
+          onChange={(v) => onFilterChange({ ...filters, priceMin: fromDisplay(v) })} />
+        <PriceSlider label="Maximum" min={0} max={toDisplay(PRICE_SLIDER_MAX_USD)}
+          value={toDisplay(filters.priceMax ?? PRICE_SLIDER_MAX_USD)} currency={displayCcy}
+          onChange={(v) => onFilterChange({ ...filters, priceMax: fromDisplay(v) })} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
           {PRICE_PRESETS.map((p) => (
             <button key={p.label}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { hasActiveScan } from '../lib/scan'
+import { formatPrice } from '../lib/currency'
 
 const CURACAO_CENTER = [12.1696, -68.9900]
 const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
@@ -66,20 +67,14 @@ function getCoords(listing) {
   return null
 }
 
-function fmtPriceBadge(price, listingType) {
-  if (!price) return 'ANG –'
-  const n = Number(price)
-  if (listingType === 'rent') return `ANG ${Math.round(n).toLocaleString()}`
-  if (n >= 1000000) return `ANG ${(n / 1000000).toFixed(1)}M`
-  return `ANG ${(n / 1000).toFixed(0)}k`
+function fmtPriceBadge(price, listingType, currency) {
+  if (!price) return formatPrice(null, currency, listingType)
+  return formatPrice(price, currency, listingType).replace('/mnd', '')
 }
 
-function fmtPrice(price, type) {
+function fmtPrice(price, type, currency) {
   if (!price) return '–'
-  const n = Number(price)
-  if (type === 'rent') return `ANG ${Math.round(n).toLocaleString()}/mnd`
-  if (n >= 1000000) return `ANG ${(n / 1000000).toFixed(2)}M`
-  return `ANG ${Math.round(n).toLocaleString()}`
+  return formatPrice(price, currency, type)
 }
 
 function capitalize(s) {
@@ -90,7 +85,7 @@ function capitalize(s) {
 function buildPopupHTML(listing) {
   const typeLabel = listing.listing_type === 'rent' ? 'Te huur' : 'Te koop'
   const propType = capitalize(listing.property_type || 'Woning')
-  const price = fmtPrice(listing.price, listing.listing_type)
+  const price = fmtPrice(listing.price, listing.listing_type, listing.currency)
   const neighborhood = capitalize(listing.neighborhood || listing.address || '')
   const beds = listing.bedrooms ? `<span style="display:flex;align-items:center;gap:4px">
     <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M236,112V80a20,20,0,0,0-20-20H40A20,20,0,0,0,20,80v32a12,12,0,0,0-4,22.63V208a12,12,0,0,0,24,0V196H216v12a12,12,0,0,0,24,0V134.63A12,12,0,0,0,236,112ZM44,84H212v28H44ZM216,172H40V160H216Z"/></svg>
@@ -132,7 +127,7 @@ function buildPopupHTML(listing) {
 
 // Price badge marker element
 function makePriceBadgeEl(listing, isSelected) {
-  const label = fmtPriceBadge(listing.price, listing.listing_type)
+  const label = fmtPriceBadge(listing.price, listing.listing_type, listing.currency)
   const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
   const el = document.createElement('div')
   const classes = ['kk-price-marker']

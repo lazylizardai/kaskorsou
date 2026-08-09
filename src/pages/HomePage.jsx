@@ -8,6 +8,7 @@ import {
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { getListings } from '../lib/supabase'
 import { hasActiveScan } from '../lib/scan'
+import { formatPrice } from '../lib/currency'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
@@ -57,12 +58,7 @@ const slideUp = (delay = 0) => ({
   transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
-function formatPrice(price, type) {
-  if (!price) return '—'
-  if (type === 'rent') return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}/mnd`
-  if (price >= 1000000) return `ANG ${(price / 1000000).toFixed(1)}M`
-  return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}`
-}
+
 
 const NEIGHBORHOODS = [
   { name: 'Jan Thiel', region: 'Oost Curaçao', icon: Waves, color: '#0891B2', img: NB_IMAGES['Jan Thiel'] },
@@ -311,7 +307,7 @@ export default function HomePage() {
                         {listing.neighborhood || listing.city || 'Curaçao'}
                       </p>
                       <p style={{ color: 'white', fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: 6 }}>
-                        {formatPrice(listing.price, listing.listing_type)}
+                        {formatPrice(listing.price, listing.currency, listing.listing_type)}
                       </p>
                       <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 1.3 }} className="line-clamp-1">
                         {listing.title}
@@ -529,7 +525,7 @@ function FeaturedCard({ listing, large }) {
         </p>
         <div className="flex items-center justify-between">
           <p style={{ color: '#5EEAD4', fontWeight: 700, fontSize: large ? 20 : 14, letterSpacing: '-0.02em' }}>
-            {formatPrice(listing.price, listing.listing_type)}
+            {formatPrice(listing.price, listing.currency, listing.listing_type)}
           </p>
           <div className="flex items-center gap-3">
             {listing.bedrooms && <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>{listing.bedrooms} bed</span>}
@@ -567,7 +563,7 @@ function MiniCard({ listing }) {
       </div>
       <div style={{ padding: '14px 16px' }}>
         <p style={{ fontWeight: 700, letterSpacing: '-0.03em', color: 'white', fontSize: 17, marginBottom: 4 }}>
-          {formatPrice(listing.price, listing.listing_type)}
+          {formatPrice(listing.price, listing.currency, listing.listing_type)}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>
           <MapPin size={11} weight="fill" style={{ color: '#5EEAD4' }} />

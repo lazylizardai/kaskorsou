@@ -7,17 +7,13 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { hasActiveScan } from '../lib/scan'
+import { formatPrice } from '../lib/currency'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
 const GOLD = '#D4A24C'
 
-function formatPrice(price, type) {
-  if (!price) return 'Prijs op aanvraag'
-  if (type === 'rent') return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}/mnd`
-  if (price >= 1000000) return `ANG ${(price / 1000000).toFixed(price % 1000000 === 0 ? 0 : 1)}M`
-  return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}`
-}
+
 
 export default function ListingCard({ listing, highlighted, onRequireAuth }) {
   const [imgIndex, setImgIndex] = useState(0)
@@ -168,7 +164,7 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
         {/* Content */}
         <div className="p-4">
           <p style={{ color: '#09090B', fontWeight: 700, letterSpacing: '-0.03em' }} className="text-lg leading-tight mb-1">
-            {formatPrice(listing.price, listing.listing_type)}
+            {formatPrice(listing.price, listing.currency, listing.listing_type)}
           </p>
           <div className="flex items-center gap-1 mb-2">
             <MapPin size={12} weight="fill" style={{ color: TEAL, flexShrink: 0 }} />

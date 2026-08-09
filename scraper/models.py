@@ -26,6 +26,10 @@ class Listing:
     listing_type: str           # 'sale' | 'rent'
     property_type: str = "house"
     price_ang:    Optional[float] = None
+    # Native valuta van de listing zoals de bron 'm toont — XCG (voorheen ANG,
+    # zelfde waarde) of USD. Nooit omgerekend voor opslag, wel voor filteren
+    # (frontend rekent XCG<->USD om met de vaste koers 1 USD = 1,79 XCG).
+    currency:     str = "XCG"
     url:          str = ""
     description:  Optional[str] = None
     bedrooms:     Optional[int] = None
@@ -47,7 +51,7 @@ class Listing:
             "title":         self.title,
             "description":   self.description,
             "price":         self.price_ang,
-            "currency":      "ANG",
+            "currency":      self.currency,
             "listing_type":  self.listing_type,
             "property_type": self.property_type,
             "bedrooms":      self.bedrooms,

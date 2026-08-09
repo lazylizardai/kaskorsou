@@ -1,9 +1,16 @@
 """RE/MAX Bonbini scraper (priority 9)
 Real domain: realestate-curacao.com (remax-bonbini.com redirects here)
+
+BELANGRIJK — valuta (9 aug 2026): deze site toont prijzen in EUR. De prijs
+werd voorheen ongewijzigd opgeslagen maar als "ANG" gelabeld — dus elk
+RE/MAX-huis stond voor het EUR-bedrag in XCG te koop (~1,95x te laag).
+Nu omgerekend naar XCG, zelfde koers als century21.py gebruikt (EUR x1,95).
 """
 import re
 from ..base_scraper import BaseScraper
 from ..models import Listing
+
+EUR_TO_XCG = 1.95
 
 
 class RemaxScraper(BaseScraper):
@@ -76,7 +83,8 @@ class RemaxScraper(BaseScraper):
             return None
 
         price_el = card.select_one("[class*='price'], .price, strong")
-        price = self.parse_price(price_el.get_text(strip=True) if price_el else "")
+        price_eur = self.parse_price(price_el.get_text(strip=True) if price_el else "")
+        price = round(price_eur * EUR_TO_XCG, 2) if price_eur else None
 
         # Neighborhood — first text line that looks like a location
         loc_el = card.select_one("[class*='location'], [class*='area'], [class*='place'], address")
@@ -120,7 +128,8 @@ class RemaxScraper(BaseScraper):
             title=title,
             listing_type=listing_type,
             property_type=ptype,
-            price_ang=price,  # Note: RE/MAX uses EUR, stored as-is
+            price_ang=price,  # omgerekend van EUR naar XCG (zie module-docstring)
+            currency="XCG",
             url=href,
             neighborhood=neighborhood,
             bedrooms=bedrooms,

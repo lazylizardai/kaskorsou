@@ -10,6 +10,7 @@ import ListingCard from '../components/ListingCard'
 import MapView from '../components/MapView'
 import { getListings } from '../lib/supabase'
 import { hasActiveScan } from '../lib/scan'
+import { toUSD } from '../lib/currency'
 
 const TEAL = '#006B7D'
 const INK = '#09090B'
@@ -56,7 +57,7 @@ export default function SearchPage() {
   const [sortOpen, setSortOpen] = useState(false)
   const [sort, setSort] = useState('default')
   const [filters, setFilters] = useState({
-    listingType: 'sale', priceMin: 0, priceMax: 5000000,
+    listingType: 'sale', priceMin: 0, priceMax: 2500000,
     bedrooms: 0, bathrooms: 0, type: '', neighborhood: '', searchQuery: '',
     scanOnly: false,
   })
@@ -86,7 +87,10 @@ export default function SearchPage() {
   const filtered = useMemo(() => {
     let result = listings.filter((l) => {
       if (l.listing_type !== filters.listingType) return false
-      if (l.price < filters.priceMin || l.price > filters.priceMax) return false
+      // Filterbereik is altijd USD — reken de listing-prijs (kan XCG of USD
+      // zijn) om zodat XCG-huizen ook correct meetellen.
+      const priceUSD = toUSD(l.price, l.currency)
+      if (priceUSD < filters.priceMin || priceUSD > filters.priceMax) return false
       if (filters.bedrooms && l.bedrooms < filters.bedrooms) return false
       if (filters.type && l.property_type !== filters.type) return false
       if (filters.neighborhood && l.neighborhood !== filters.neighborhood) return false
@@ -98,8 +102,8 @@ export default function SearchPage() {
       }
       return true
     })
-    if (sort === 'price_asc') result = [...result].sort((a, b) => a.price - b.price)
-    else if (sort === 'price_desc') result = [...result].sort((a, b) => b.price - a.price)
+    if (sort === 'price_asc') result = [...result].sort((a, b) => toUSD(a.price, a.currency) - toUSD(b.price, b.currency))
+    else if (sort === 'price_desc') result = [...result].sort((a, b) => toUSD(b.price, b.currency) - toUSD(a.price, a.currency))
     else if (sort === 'newest') result = [...result].filter(l => l.is_new).concat(result.filter(l => !l.is_new))
     else {
       // Standaard: actieve 3D-scans eerst, dan uitgelicht, dan op quality_score
@@ -128,7 +132,7 @@ export default function SearchPage() {
     filters.type, filters.neighborhood,
     filters.bedrooms > 0 && '1',
     filters.priceMin > 0 && '1',
-    filters.priceMax < 5000000 && '1',
+    filters.priceMax < 2500000 && '1',
   ].filter(Boolean).length
 
   return (
@@ -256,7 +260,7 @@ export default function SearchPage() {
                     <div className="col-span-full py-20 text-center">
                       <MapTrifold size={40} style={{ color: '#D4D4D8', margin: '0 auto 12px' }} />
                       <p style={{ color: '#71717A', fontWeight: 500 }}>Geen woningen gevonden</p>
-                      <button onClick={() => setFilters(f => ({ ...f, type: '', neighborhood: '', bedrooms: 0, priceMin: 0, priceMax: 5000000 }))}
+                      <button onClick={() => setFilters(f => ({ ...f, type: '', neighborhood: '', bedrooms: 0, priceMin: 0, priceMax: 2500000 }))}
                         style={{ color: TEAL, fontWeight: 600, marginTop: 12 }} className="text-sm hover:underline">
                         Filters wissen
                       </button>

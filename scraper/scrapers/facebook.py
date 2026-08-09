@@ -1,6 +1,7 @@
 """
 Facebook Marketplace scraper via Playwright (priority 10)
 Vereist: fb_cookies.json in scraper/ root (export via EditThisCookie extensie)
+          — of Peters echte Brave op de Mini PC met een debug-poort (zie CDP_URL).
 
 BELANGRIJK — locatie (9 aug 2026):
 De marketplace-URL met een tekst-slug ("curacao") wordt door Facebook genegeerd
@@ -9,6 +10,13 @@ locatie niet handmatig op Willemstad, Curacao staat, scraped dit script de
 locatie van het account (bv. San Francisco) in plaats van Curacao — geen
 foutmelding, gewoon compleet verkeerde listings. Zie scraper/README of
 kaskorsou-status.md voor de eenmalige handmatige stap om dit recht te zetten.
+
+LOCATIE-FIX (9 aug 2026, avond): losse Playwright-cookies bleken vast te zitten
+aan een verouderde sessie-snapshot, ook al klopte de account-locatie live al.
+Oplossing: liftt nu bij voorkeur direct mee op Peters echte, ingelogde Brave op
+de Mini PC via een remote-debugging-poort (CDP) — dezelfde sessie die al
+Willemstad toont, geen cookie-injectie nodig. Cookiebestand blijft de fallback
+als die poort niet bereikbaar is.
 """
 import json, re, time, random, logging
 from pathlib import Path
@@ -28,6 +36,11 @@ DESC_SKIP_MARKERS = ["geleden geplaatst", " ago", "nu beschikbaar", "now availab
 logger = logging.getLogger("facebook")
 
 COOKIES_FILE = Path(__file__).parent.parent / "fb_cookies.json"
+# Peters echte Brave op de Mini PC, gestart met --remote-debugging-port=9222 op
+# hetzelfde profiel (zie scraper/start_brave_debug.ps1). Als dit bereikbaar is
+# gebruiken we die sessie direct — geen cookie-injectie, geen aparte locatie-bug
+# mogelijk want het IS de sessie die Peter zelf op Willemstad heeft gezet.
+CDP_URL = "http://localhost:9222"
 URLS = [
     ("rent",  "https://www.facebook.com/marketplace/curacao/propertyrentals"),
     ("sale",  "https://www.facebook.com/marketplace/curacao/propertyforsale"),
@@ -44,47 +57,13 @@ class FacebookScraper:
             logger.error("Run: pip install playwright && playwright install chromium")
             return []
 
-        if not COOKIES_FILE.exists():
-            logger.error(f"Cookies niet gevonden: {COOKIES_FILE}")
-            return []
-
         source_id = SOURCES[self.source_name]["id"]
         results = []
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            ctx = browser.new_context(
-                viewport={"width": 1440, "height": 900},
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
-            )
-            SAMESITE_MAP = {
-                "no_restriction": "None",
-                "unspecified": "Lax",
-                "lax": "Lax",
-                "strict": "Strict",
-                "none": "None",
-            }
-            with open(COOKIES_FILE) as f:
-                raw_cookies = json.load(f)
-            cookies = []
-            for c in raw_cookies:
-                cookie = {
-                    "name": c["name"],
-                    "value": c["value"],
-                    "domain": c["domain"],
-                    "path": c.get("path", "/"),
-                    "secure": c.get("secure", False),
-                    "httpOnly": c.get("httpOnly", False),
-                    "sameSite": SAMESITE_MAP.get(c.get("sameSite", "").lower(), "Lax"),
-                }
-                if c.get("expirationDate"):
-                    cookie["expires"] = int(c["expirationDate"])
-                cookies.append(cookie)
-            ctx.add_cookies(cookies)
+            browser, ctx, used_cdp = self._get_browser_context(p)
+            if browser is None:
+                return []
 
             page = ctx.new_page()
 
@@ -97,7 +76,9 @@ class FacebookScraper:
                     "(zie module-docstring) — FB-run overgeslagen om geen "
                     "verkeerde listings te schrijven."
                 )
-                browser.close()
+                page.close()
+                if not used_cdp:
+                    browser.close()
                 return []
 
             for listing_type, url in URLS:
@@ -133,10 +114,69 @@ class FacebookScraper:
                 logger.info(f"FB detail {idx + 1}/{len(results)} verrijkt: {listing.title}")
                 time.sleep(random.uniform(1.5, 3))
 
-            browser.close()
+            page.close()
+            # Bij CDP: het is Peters echte, 24/7-draaiende Brave — alleen onze
+            # eigen tab sluiten, nooit de hele browser.
+            if not used_cdp:
+                browser.close()
 
         logger.info(f"Facebook: {len(results)} listings total")
         return results
+
+    def _get_browser_context(self, p):
+        """
+        Geeft (browser, context, used_cdp) terug.
+        Probeert eerst Peters echte Brave via CDP (geen locatie-risico, is de
+        sessie die al goed staat). Valt terug op een verse Playwright-browser
+        met geinjecteerde cookies uit fb_cookies.json als de debug-poort niet
+        bereikbaar is.
+        """
+        try:
+            browser = p.chromium.connect_over_cdp(CDP_URL, timeout=5000)
+            ctx = browser.contexts[0] if browser.contexts else browser.new_context()
+            logger.info("FB: meegelift op Peters live Brave-sessie via CDP (%s)", CDP_URL)
+            return browser, ctx, True
+        except Exception as e:
+            logger.info(f"FB: CDP niet bereikbaar ({e}), val terug op fb_cookies.json")
+
+        if not COOKIES_FILE.exists():
+            logger.error(f"Cookies niet gevonden: {COOKIES_FILE}")
+            return None, None, False
+
+        browser = p.chromium.launch(headless=False)
+        ctx = browser.new_context(
+            viewport={"width": 1440, "height": 900},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+        )
+        SAMESITE_MAP = {
+            "no_restriction": "None",
+            "unspecified": "Lax",
+            "lax": "Lax",
+            "strict": "Strict",
+            "none": "None",
+        }
+        with open(COOKIES_FILE) as f:
+            raw_cookies = json.load(f)
+        cookies = []
+        for c in raw_cookies:
+            cookie = {
+                "name": c["name"],
+                "value": c["value"],
+                "domain": c["domain"],
+                "path": c.get("path", "/"),
+                "secure": c.get("secure", False),
+                "httpOnly": c.get("httpOnly", False),
+                "sameSite": SAMESITE_MAP.get(c.get("sameSite", "").lower(), "Lax"),
+            }
+            if c.get("expirationDate"):
+                cookie["expires"] = int(c["expirationDate"])
+            cookies.append(cookie)
+        ctx.add_cookies(cookies)
+        return browser, ctx, False
 
     def _check_location(self, page) -> bool:
         """True als de Marketplace-locatie van het account Curacao is."""
@@ -213,12 +253,16 @@ class FacebookScraper:
         # Kaartlayout is [prijs, titel, locatie] — lines[0] is dus de PRIJS, niet
         # de titel (was eerder verkeerd om, gaf "US$ 900" als titel).
         title = lines[1] if len(lines) > 1 else (lines[0] if lines else "Facebook listing")
-        price_text = next((l for l in lines if any(c in l for c in ["ANG", "$", "NAf", "€"])), "")
+        price_text = next((l for l in lines if any(c in l for c in ["ANG", "$", "NAf", "€", "XCG"])), "")
         # FB toont bedragen als "US$ 1.000" (punt als duizendtal-scheiding, geen
         # decimalen) — alleen niet-cijfers wegstrippen voorkomt dat "1.000" als
         # 1.0 wordt gelezen (was een factor-1000 bug).
         price_num = re.sub(r"[^\d]", "", price_text)
         price = float(price_num) if price_num else None
+        # Valuta: FB-advertenties op Curacao staan door elkaar in US$ en
+        # ANG/NAf/XCG — nooit omrekenen, gewoon opslaan zoals de plaatser het
+        # zelf noteerde (net als bij de makelaarsscrapers).
+        currency = "USD" if re.search(r"US\$|\bUSD\b", price_text, re.I) else "XCG"
 
         imgs = [img.get_attribute("src") for img in card.query_selector_all("img[src]")]
         neighborhood = lines[2] if len(lines) > 2 else None
@@ -241,6 +285,7 @@ class FacebookScraper:
             listing_type=listing_type,
             property_type="house",
             price_ang=price,
+            currency=currency,
             url=url,
             neighborhood=neighborhood,
             # Kaart-thumbnail als voorlopige/fallback-foto — wordt in de

@@ -10,6 +10,7 @@ import { getListingById } from '../lib/supabase'
 import { hasActiveScan, buildScanEmbedUrl } from '../lib/scan'
 import { useAuth } from '../context/AuthContext'
 import AuthModal from '../components/AuthModal'
+import { formatPrice } from '../lib/currency'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
@@ -94,11 +95,7 @@ function TourSection({ listing }) {
   )
 }
 
-function formatPrice(price, type) {
-  if (type === 'rent') return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}/mnd`
-  if (price >= 1000000) return `ANG ${(price / 1000000).toFixed(price % 1000000 === 0 ? 0 : 1)}M`
-  return `ANG ${new Intl.NumberFormat('nl-NL').format(price)}`
-}
+
 
 function Gallery({ images }) {
   const [current, setCurrent] = useState(0)
@@ -199,9 +196,7 @@ export default function DetailPage() {
       setListing(data)
       setLoading(false)
       if (data) {
-        const priceStr = data.price >= 1000000
-          ? `ANG ${(data.price / 1000000).toFixed(1)}M`
-          : `ANG ${new Intl.NumberFormat('nl-NL').format(data.price)}`
+        const priceStr = formatPrice(data.price, data.currency, data.listing_type)
         const title = `${data.title} — ${priceStr} | KasKorsou`
         const desc = `${data.property_type || 'Woning'} in ${data.neighborhood || 'Curaçao'} voor ${priceStr}.${data.bedrooms ? ' ' + data.bedrooms + ' slaapkamers,' : ''}${data.area_sqm ? ' ' + data.area_sqm + ' m².' : ''} Bekijk op KasKorsou.`
         document.title = title
@@ -367,7 +362,7 @@ export default function DetailPage() {
               padding: 24,
             }}>
               <p style={{ color: INK, fontWeight: 800, fontSize: 32, letterSpacing: '-0.04em', lineHeight: 1 }}>
-                {formatPrice(listing.price, listing.listing_type)}
+                {formatPrice(listing.price, listing.currency, listing.listing_type)}
               </p>
               {listing.listing_type === 'rent' && (
                 <p style={{ color: '#71717A', fontSize: 13, marginTop: 4 }}>per maand</p>
