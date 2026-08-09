@@ -10,6 +10,8 @@ setWorkerUrl(maplibreWorkerUrl)
 import { Cube, MapPin, Stack, ArrowRight, MapTrifold } from '@phosphor-icons/react'
 import { getListings } from '../lib/supabase'
 import { hasActiveScan } from '../lib/scan'
+import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
+import { useVideoTour } from '../context/VideoTourContext'
 import { formatPrice } from '../lib/currency'
 
 const TEAL = '#006B7D'
@@ -54,9 +56,21 @@ function popupHTML(p) {
   const scanBadge = p.scan === 'true' || p.scan === true
     ? `<div style="position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#E8B547,#B5862E);color:#1F1407;font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,0.25)">${CUBE_SVG.replace('width="16" height="16"', 'width="11" height="11"')} 3D-tour</div>`
     : ''
+  const hasVideo = p.video === 'true' || p.video === true
+  const videoBadgeLeft = scanBadge ? 96 : 10
+  const videoBadge = hasVideo
+    ? `<div style="position:absolute;top:10px;left:${videoBadgeLeft}px;display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#F0805A,#E8672A);color:white;font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,0.25)"><svg width="10" height="10" viewBox="0 0 256 256" fill="currentColor"><path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></svg> Video</div>`
+    : ''
+  const videoButton = hasVideo
+    ? `<button data-kk-video-url="${esc(p.video_url)}"
+          style="width:100%;margin-top:8px;padding:9px 12px;background:linear-gradient(135deg,#F0805A,#E8672A);color:white;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></svg>
+          Video Tour bekijken
+        </button>`
+    : ''
   return `
     <div style="font-family:Geist,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;width:240px;overflow:hidden;border-radius:14px;background:white">
-      <div style="position:relative">${media}${scanBadge}</div>
+      <div style="position:relative">${media}${scanBadge}${videoBadge}</div>
       <div style="padding:12px 14px 14px">
         <div style="font-size:17px;font-weight:800;color:${INK};letter-spacing:-0.02em;line-height:1.2">${esc(price)}</div>
         <div style="font-size:12.5px;font-weight:600;color:#3F3F46;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.title)}</div>
@@ -66,6 +80,7 @@ function popupHTML(p) {
           Bekijk woning
           <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg>
         </button>
+        ${videoButton}
       </div>
     </div>`
 }
@@ -131,12 +146,15 @@ function makePinEl() {
 
 export default function Kaart3DPage() {
   const navigate = useNavigate()
+  const { openVideo } = useVideoTour()
   const mapEl = useRef(null)
   const mapRef = useRef(null)
   const popupRef = useRef(null)
   const pinMarkersRef = useRef([])
   const navigateRef = useRef(navigate)
   navigateRef.current = navigate
+  const openVideoRef = useRef(openVideo)
+  openVideoRef.current = openVideo
 
   const [listings, setListings] = useState([])
   const [status, setStatus] = useState('loading') // loading | ready | error
@@ -175,6 +193,11 @@ export default function Kaart3DPage() {
     popupRef.current = popup
     const btn = popup.getElement()?.querySelector('[data-kk-id]')
     if (btn) btn.addEventListener('click', () => navigateRef.current(`/listing/${props.id}`))
+    const videoBtn = popup.getElement()?.querySelector('[data-kk-video-url]')
+    if (videoBtn) videoBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      openVideoRef.current({ url: props.video_url, title: props.title })
+    })
   }, [])
   const openPopupRef = useRef(openPopup)
   openPopupRef.current = openPopup
@@ -313,6 +336,7 @@ export default function Kaart3DPage() {
           listing_type: l.listing_type || 'sale',
           bedrooms: l.bedrooms || 0, bathrooms: l.bathrooms || 0, area_sqm: l.area_sqm || 0,
           image: (l.images && l.images[0]) || '', scan: 'false',
+          video: hasVideoTour(l) ? 'true' : 'false', video_url: buildVideoStreamUrl(l.video_url) || '',
         },
       })),
     }
@@ -389,6 +413,7 @@ export default function Kaart3DPage() {
         listing_type: l.listing_type || 'sale',
         bedrooms: l.bedrooms || 0, bathrooms: l.bathrooms || 0, area_sqm: l.area_sqm || 0,
         image: (l.images && l.images[0]) || '', scan: 'true',
+        video: hasVideoTour(l) ? 'true' : 'false', video_url: buildVideoStreamUrl(l.video_url) || '',
       }
       const open = (e) => { e.stopPropagation?.(); openPopupRef.current(props, [l.longitude, l.latitude]) }
       el.addEventListener('click', open)
