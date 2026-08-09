@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Heart, Bed, Bathtub, ArrowsOut, MapPin,
-  CaretLeft, CaretRight, ShareNetwork, Cube,
+  CaretLeft, CaretRight, ShareNetwork, Cube, Play,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { hasActiveScan } from '../lib/scan'
+import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
+import { useVideoTour } from '../context/VideoTourContext'
 import { formatPrice } from '../lib/currency'
 
 const TEAL = '#006B7D'
@@ -20,9 +22,16 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
   const [hovered, setHovered] = useState(false)
   const [shareToast, setShareToast] = useState(false)
   const { favoriteIds, toggleFavorite } = useAuth()
+  const { openVideo } = useVideoTour()
 
   const isFav = favoriteIds.has(listing.id)
   const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
+  const hasVideo = hasVideoTour(listing)
+
+  function handlePlayVideo(e) {
+    e.preventDefault(); e.stopPropagation()
+    openVideo({ url: buildVideoStreamUrl(listing.video_url), title: listing.title })
+  }
 
   const FALLBACKS = {
     villa:     'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=600&fit=crop',
@@ -130,12 +139,30 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
           </div>
 
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex gap-1.5">
+          <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
             {hasScan && <ScanBadge />}
+            {hasVideo && <VideoBadge />}
             {listing.is_new && <Badge label="Nieuw" color={TEAL} />}
-            {listing.is_featured && !hasScan && <Badge label="Uitgelicht" color={CORAL} />}
+            {listing.is_featured && !hasScan && !hasVideo && <Badge label="Uitgelicht" color={CORAL} />}
             {listing.listing_type === 'rent' && <Badge label="Huur" color="#09090B" />}
           </div>
+
+          {/* Video-tour play knop (pointer-events alleen op de knop zelf, niet op de hele afbeelding) */}
+          {hasVideo && (
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ pointerEvents: 'none' }}>
+              <button aria-label={`Bekijk video tour: ${listing.title}`} onClick={handlePlayVideo}
+                style={{
+                  pointerEvents: 'auto',
+                  width: 52, height: 52, borderRadius: '50%',
+                  background: 'rgba(9,9,11,0.72)', backdropFilter: 'blur(6px)',
+                  border: `1.5px solid ${CORAL}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+                }}>
+                <Play size={20} weight="fill" style={{ color: 'white', marginLeft: 2 }} />
+              </button>
+            </div>
+          )}
 
           {/* 3D-tour hover hint */}
           {hasScan && (
@@ -204,6 +231,22 @@ function ScanBadge() {
     }}
       className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wide flex items-center gap-1">
       <Cube size={10} weight="fill" />3D Tour
+    </span>
+  )
+}
+
+// Los van ScanBadge (echte 3D-scan): dit is een AI-gegenereerde cinematische
+// video. Bewust een ander kleur/label — anders claimt de site een 3D-tour
+// die er niet is.
+function VideoBadge() {
+  return (
+    <span style={{
+      background: 'linear-gradient(135deg, #F0805A 0%, #E8672A 50%, #C24F1B 100%)',
+      color: 'white',
+      boxShadow: '0 2px 6px rgba(232,103,42,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
+    }}
+      className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wide flex items-center gap-1">
+      <Play size={10} weight="fill" />Video Tour
     </span>
   )
 }
