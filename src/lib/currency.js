@@ -32,21 +32,18 @@ export function toXCG(price, currency) {
 
 const nf = new Intl.NumberFormat('nl-NL')
 
-// Toont een prijs in de eigen valuta van de listing — nooit omgerekend.
-// listingType 'rent' -> "/mnd", sale -> afgekort vanaf 1M.
+// Toont een prijs in de eigen valuta van de listing — nooit omgerekend, en
+// altijd het volledige bedrag (190.000 / 1.200.000), nooit afgekort tot
+// "1.2M" — Peter wil de exacte bedragen kunnen lezen.
 export function formatPrice(price, currency, listingType) {
-  const symbol = isUsd(currency) ? '$' : 'XCG'
+  const usd = isUsd(currency)
   if (price == null || Number.isNaN(Number(price))) {
-    return listingType ? `${symbol} –` : 'Prijs op aanvraag'
+    return listingType ? (usd ? '$ –' : '– XCG') : 'Prijs op aanvraag'
   }
-  const n = Number(price)
-  if (listingType === 'rent') {
-    return `${symbol} ${nf.format(Math.round(n))}/mnd`
-  }
-  if (n >= 1000000) {
-    return `${symbol} ${(n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1)}M`
-  }
-  return `${symbol} ${nf.format(Math.round(n))}`
+  const n = Math.round(Number(price))
+  const amount = nf.format(n)
+  const base = usd ? `$ ${amount}` : `${amount} XCG`
+  return listingType === 'rent' ? `${base}/mnd` : base
 }
 
 // Compacte notatie voor sliders/badges: "150k", "1.2M" (zonder symbool).
