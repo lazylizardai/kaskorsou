@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { VideoTourProvider } from './context/VideoTourContext'
 import Navigation from './components/Navigation'
 import HomePage from './pages/HomePage'
 import SearchPage from './pages/SearchPage'
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+      <VideoTourProvider>
         <Navigation />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -41,6 +43,7 @@ export default function App() {
             </Suspense>
           } />
         </Routes>
+      </VideoTourProvider>
       </AuthProvider>
     </BrowserRouter>
   )
