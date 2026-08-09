@@ -23,12 +23,12 @@ const HERO_IMG = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?a
 
 // Fallback-foto's per wijk (voor listings zonder bruikbare afbeeldingen)
 const NB_IMAGES = {
-  'Jan Thiel': 'https://images.unsplash.com/photo-1571986237692-cf5b892ad4b9?w=800&q=80',
-  'Blue Bay': 'https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&q=80',
-  'Blue Bay Golf & Beach Resort': 'https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=800&q=80',
-  Pietermaai: 'https://images.unsplash.com/photo-1590059915548-18e6a95a8d6b?w=800&q=80',
-  'Coral Estate': 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80',
-  Piscadera: 'https://images.unsplash.com/photo-1600596542815-aa3a76832e02?w=800&q=80',
+  'Jan Thiel': '/images/neighborhoods/jan-thiel.webp',
+  'Blue Bay': '/images/neighborhoods/blue-bay.webp',
+  'Blue Bay Golf & Beach Resort': '/images/neighborhoods/blue-bay.webp',
+  Pietermaai: '/images/neighborhoods/pietermaai.webp',
+  'Coral Estate': '/images/neighborhoods/coral-estate.webp',
+  Piscadera: '/images/neighborhoods/piscadera.webp',
   Salinja: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80',
   Brievengat: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
   Mahuma: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80',
