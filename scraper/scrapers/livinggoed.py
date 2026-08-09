@@ -25,6 +25,7 @@ class LivinggoedScraper(BaseScraper):
     source_name = "livinggoed"
     BASE = "https://livinggoed.com"
     SITEMAP = "https://livinggoed.com/property-sitemap.xml"
+    AGENT_COMPANY = "Livinggoed Real Estate"
 
     def _fetch(self, url: str, tries: int = 5):
         """Robuuste GET (livinggoed geeft af en toe transiente 000/proxy-fouten)."""
@@ -110,6 +111,31 @@ class LivinggoedScraper(BaseScraper):
             if not (11.9 <= lat <= 12.45 and -69.25 <= lng <= -68.6):
                 lat = lng = None
 
+        # beschrijving: Houzez zet 'm meestal in het JSON-blok zelf, anders in
+        # een genest content-blok op de pagina, anders de SEO meta-omschrijving
+        soup = BeautifulSoup(html, "lxml") if BeautifulSoup else None
+        description = jm.get("content") or jm.get("description") or None
+        if description:
+            description = re.sub(r"<[^>]+>", " ", description)
+        if not description and soup is not None:
+            entry = (
+                soup.select_one("#tab-description")
+                or soup.select_one(".property_description")
+                or soup.select_one(".item_description")
+                or soup.select_one(".single_property_element .content")
+                or soup.select_one(".entry-content")
+            )
+            if entry:
+                dtext = re.sub(r"\s+", " ", entry.get_text(" ", strip=True)).strip()
+                if len(dtext) > 40:
+                    description = dtext
+        if not description and soup is not None:
+            meta = soup.select_one('meta[name="description"]') or soup.select_one('meta[property="og:description"]')
+            if meta and meta.get("content"):
+                description = meta["content"]
+        if description:
+            description = re.sub(r"\s+", " ", description).strip()[:6000] or None
+
         # beds/baths/oppervlak uit detail-tekst
         text = html
         if BeautifulSoup:
@@ -143,13 +169,15 @@ class LivinggoedScraper(BaseScraper):
             property_type=ptype,
             price_ang=price,          # Cg. / ANG
             url=url,
+            description=description,
             neighborhood=neighborhood,
             bedrooms=beds,
             bathrooms=baths,
             area_sqm=area,
             latitude=lat,
             longitude=lng,
-            images=images[:10],
+            images=self.clean_images(images, limit=40),
+            agent_company=self.AGENT_COMPANY,
         )
 
     @staticmethod

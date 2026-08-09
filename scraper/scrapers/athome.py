@@ -13,6 +13,7 @@ from ..models import Listing
 class AthomeScraper(BaseScraper):
     source_name = "athome"
     BASE = "https://athomecuracao.com"
+    AGENT_COMPANY = "At Home Curaçao Makelaars"
 
     # (listing_type, categorie-pad). Parents + leaves; dedup gebeurt op object-id.
     PATHS = [
@@ -69,8 +70,63 @@ class AthomeScraper(BaseScraper):
                     break
                 page += 1
 
-        self.logger.info(f"At Home total: {len(results)} listings")
+        self.logger.info(f"At Home total: {len(results)} listings — detailpagina's ophalen voor beschrijving/foto's")
+        for l in results:
+            try:
+                self._enrich(l)
+            except Exception as e:
+                self.logger.warning(f"athome enrich error ({l.external_id}): {e}")
+            l.agent_company = self.AGENT_COMPANY
+
         return results
+
+    def _enrich(self, l: Listing) -> None:
+        """Detailpagina ophalen voor de volledige beschrijving en de hele
+        fotogalerij (de kaart op de zoekpagina toont maar 1 thumbnail)."""
+        soup = self.get(l.url)
+        if not soup:
+            return
+        l.description = self._extract_description(soup)
+        imgs = self._extract_images(soup)
+        if imgs:
+            l.images = imgs
+
+    @staticmethod
+    def _extract_description(soup) -> str | None:
+        # De echte lopende-tekst-beschrijving zit in een GENEST entry-content
+        # blok onder "#overview" (Houzez-thema) — niet de buitenste
+        # .entry-content, die is de specs+galerij-wrapper (2x dezelfde class
+        # op de pagina, dus een blote .entry-content selector pakt het
+        # verkeerde blok).
+        entry = soup.select_one("#overview .frontend-entry-content") \
+            or soup.select_one("#overview .entry-content") \
+            or soup.select_one(".frontend-entry-content")
+        if entry:
+            text = re.sub(r"\s+", " ", entry.get_text(" ", strip=True)).strip()
+            if len(text) > 40:
+                return text[:6000]
+        # Fallback: sommige listings hebben geen los beschrijvingsblok — dan
+        # is de Rank Math SEO-omschrijving het beste dat beschikbaar is (vaak
+        # ~155 tekens, wel echte content, geen lorem ipsum).
+        meta = soup.select_one('meta[name="description"]') or soup.select_one('meta[property="og:description"]')
+        if meta and meta.get("content"):
+            text = re.sub(r"\s+", " ", meta["content"]).strip()
+            return text or None
+        return None
+
+    def _extract_images(self, soup) -> list[str]:
+        gallery = soup.select_one("#jig1") or soup.select_one(".justified-image-grid")
+        urls: list[str] = []
+        if gallery:
+            for a in gallery.select("a[href]"):
+                href = a.get("href", "")
+                if re.search(r"\.(jpg|jpeg|png)(\?.*)?$", href, re.I):
+                    urls.append(href)
+        if not urls:
+            og = soup.select_one('meta[property="og:image"]')
+            if og and og.get("content"):
+                urls = [og["content"]]
+        return self.clean_images(urls)
 
     def _parse(self, card, listing_type: str, path: str) -> Listing | None:
         # Object-id uit de article class (property-<id>) of uit li.objectid

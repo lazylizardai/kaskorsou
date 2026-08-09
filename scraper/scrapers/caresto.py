@@ -26,6 +26,7 @@ class CarestoScraper(BaseScraper):
     source_name = "caresto"
     BASE = "https://www.caresto.com"
     CANON = "https://caresto.com"
+    AGENT_COMPANY = "Caresto Real Estate"
 
     # ---- SiteGround PoW captcha ----------------------------------------
     @staticmethod
@@ -156,13 +157,14 @@ class CarestoScraper(BaseScraper):
         content_html = (p.get("content") or {}).get("rendered", "")
         price = self._price_from_text(content_html)
 
-        # detailpagina voor beds/baths/oppervlak/coords/gallery
+        # detailpagina voor beschrijving/beds/baths/oppervlak/coords/gallery
         beds = baths = area = lat = lng = None
         images: list[str] = []
+        description = None
         try:
             dr = self._fetch(url)
             if dr is not None and dr.status_code == 200:
-                beds, baths, area, lat, lng, images = self._parse_detail(dr.text, p.get("slug", ""))
+                beds, baths, area, lat, lng, images, description = self._parse_detail(dr.text, p.get("slug", ""))
         except Exception as e:
             self.logger.warning(f"caresto detail fout ({p.get('slug')}): {e}")
 
@@ -174,19 +176,37 @@ class CarestoScraper(BaseScraper):
             property_type=ptype,
             price_ang=price,          # XCG/ANG
             url=url,
+            description=description,
             neighborhood=neighborhood,
             bedrooms=beds,
             bathrooms=baths,
             area_sqm=area,
             latitude=lat,
             longitude=lng,
-            images=images[:10],
+            images=self.clean_images(images, limit=40),
+            agent_company=self.AGENT_COMPANY,
         )
 
     def _parse_detail(self, html: str, slug: str):
         text = html
+        soup = None
         if BeautifulSoup:
-            text = BeautifulSoup(html, "lxml").get_text(" ", strip=True)
+            soup = BeautifulSoup(html, "lxml")
+            text = soup.get_text(" ", strip=True)
+
+        description = None
+        if soup is not None:
+            entry = soup.select_one(".entry-content") or soup.select_one("article .content")
+            if entry:
+                dtext = re.sub(r"\s+", " ", entry.get_text(" ", strip=True)).strip()
+                if len(dtext) > 40:
+                    description = dtext[:6000]
+        if not description:
+            meta = None
+            if soup is not None:
+                meta = soup.select_one('meta[name="description"]') or soup.select_one('meta[property="og:description"]')
+            if meta and meta.get("content"):
+                description = re.sub(r"\s+", " ", meta["content"]).strip() or None
 
         beds = self._int(re.search(r"(\d+)\s*slaapkamer", text))
         baths = self._int(re.search(r"(\d+)\s*badkamer", text))
@@ -222,7 +242,7 @@ class CarestoScraper(BaseScraper):
             if base not in seen:
                 seen.add(base)
                 images.append(base)
-        return beds, baths, area, lat, lng, images
+        return beds, baths, area, lat, lng, images, description
 
     @staticmethod
     def _int(m):

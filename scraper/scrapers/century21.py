@@ -8,6 +8,9 @@ Prijzen staan per listing in XCG, US$ of EU€ — alles wordt omgerekend
 naar XCG/ANG (USD x1.79, EUR x1.95, XCG as-is).
 """
 import re
+import time
+import random
+import json
 from ..base_scraper import BaseScraper
 from ..models import Listing
 
@@ -18,6 +21,7 @@ EUR_TO_XCG = 1.95
 class Century21Scraper(BaseScraper):
     source_name = "century21"
     BASE = "https://century21numberone.com"
+    AGENT_COMPANY = "Century 21 Curaçao"
 
     SEARCH_PATHS = [
         ("sale", "/en/s/for-sale/"),
@@ -73,8 +77,75 @@ class Century21Scraper(BaseScraper):
                     break
                 page += 1
 
-        self.logger.info(f"Century21 total: {len(results)} listings")
+        self.logger.info(f"Century21 total: {len(results)} listings — beschrijving/foto's ophalen")
+        for l in results:
+            try:
+                self._enrich(l)
+            except Exception as e:
+                self.logger.warning(f"C21 enrich error ({l.external_id}): {e}")
+            l.agent_company = self.AGENT_COMPANY
+
         return results
+
+    def _enrich(self, l: Listing) -> None:
+        """
+        De kaart op de zoekpagina toont maar 1 thumbnail en geen beschrijving.
+        - Beschrijving: staat volledig (ongekort) in de JSON-LD Product-schema
+          op de detailpagina, zelfs al is de zichtbare pagina achter de AWS
+          WAF geblokkeerd voor snelle requests.
+        - Foto's: de detailpagina zelf laadt de galerij client-side (React),
+          dus die staat niet in de HTML. De CDN images zelf
+          (mls.cdn.../images/listings/{id}/xlg/{n}.jpg) zitten NIET achter de
+          WAF en zijn gewoon oplopend genummerd vanaf 0 — dus proberen we die
+          rechtstreeks totdat er 2x op rij geen geldige foto meer terugkomt.
+        """
+        soup = self.get(l.url)
+        if soup:
+            desc = self._extract_ldjson_description(soup)
+            if desc:
+                l.description = self.clean_text(desc)
+
+        imgs = self._probe_gallery(l.external_id)
+        if imgs:
+            l.images = imgs
+
+    @staticmethod
+    def _extract_ldjson_description(soup) -> str | None:
+        for script in soup.select('script[type="application/ld+json"]'):
+            raw = script.string or script.get_text()
+            if not raw:
+                continue
+            try:
+                data = json.loads(raw)
+            except Exception:
+                continue
+            if isinstance(data, dict) and data.get("description"):
+                return data["description"]
+        return None
+
+    def _probe_gallery(self, ext_id: str, limit: int = 40) -> list[str]:
+        if not ext_id:
+            return []
+        urls: list[str] = []
+        misses = 0
+        for i in range(limit):
+            url = f"{self.BASE}/mls.cdn/images/listings/{ext_id}/xlg/{i}.jpg"
+            try:
+                time.sleep(random.uniform(0.3, 0.8))
+                r = self.session.get(url, timeout=15, allow_redirects=True)
+            except Exception:
+                misses += 1
+                if misses >= 2:
+                    break
+                continue
+            if r.status_code == 200 and len(r.content) > 2000:
+                urls.append(r.url)
+                misses = 0
+            else:
+                misses += 1
+                if misses >= 2:
+                    break
+        return self.clean_images(urls, limit=limit)
 
     def _parse(self, card, listing_type: str) -> Listing | None:
         ext_id = card.get("data-ad-id")

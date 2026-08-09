@@ -16,6 +16,7 @@ EUR_TO_XCG = 1.95
 class RemaxScraper(BaseScraper):
     source_name = "remax"
     BASE = "https://www.realestate-curacao.com"
+    AGENT_COMPANY = "RE/MAX Bonbini"
 
     PATHS = [
         ("sale", "/nl/woningen/koopwoningen/"),
@@ -62,8 +63,33 @@ class RemaxScraper(BaseScraper):
                     break
                 page += 1
 
-        self.logger.info(f"RE/MAX total: {len(results)} listings")
+        self.logger.info(f"RE/MAX total: {len(results)} listings — detailpagina's ophalen voor beschrijving/foto's")
+        for l in results:
+            try:
+                self._enrich(l)
+            except Exception as e:
+                self.logger.warning(f"RE/MAX enrich error ({l.external_id}): {e}")
+            l.agent_company = self.AGENT_COMPANY
+
         return results
+
+    def _enrich(self, l: Listing) -> None:
+        """Haalt de detailpagina op voor de volledige beschrijving en de hele
+        fotogalerij (de kaart op de zoekpagina toont maar 1 thumbnail)."""
+        soup = self.get(l.url)
+        if not soup:
+            return
+
+        desc_el = soup.select_one("#description")
+        if desc_el:
+            l.description = self.clean_text(desc_el.get_text(" ", strip=True))
+
+        imgs = re.findall(
+            r"(?:https?:)?//cdn\.[a-z0-9.-]*remax[a-z0-9.-]*\.com/img/cache/[^\s\"')]+\.(?:jpg|jpeg|png)",
+            str(soup), flags=re.I,
+        )
+        if imgs:
+            l.images = self.clean_images(imgs)
 
     def _parse(self, card, listing_type: str) -> Listing | None:
         link = card.select_one("a[href]")

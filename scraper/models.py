@@ -39,6 +39,11 @@ class Listing:
     latitude:     Optional[float] = None
     longitude:    Optional[float] = None
     images:       list = field(default_factory=list)
+    # Wie de listing aanbiedt — altijd gevuld zodra de bron bekend is (naam van
+    # het makelaarskantoor). agent_name is de individuele contactpersoon,
+    # alleen gevuld als de bron dat expliciet toont (meestal niet het geval).
+    agent_name:    Optional[str] = None
+    agent_company: Optional[str] = None
     # Facebook-specific
     is_private:   bool = False   # True = particulier, False = agency/unknown
     agency_hint:  Optional[str] = None  # detected agency slug
@@ -61,6 +66,8 @@ class Listing:
             "latitude":      self.latitude,
             "longitude":     self.longitude,
             "images":        self.images,
+            "agent_name":    self.agent_name,
+            "agent_company": self.agent_company,
             "status":        "active",
             "last_seen_at":  datetime.now(timezone.utc).isoformat(),
         }

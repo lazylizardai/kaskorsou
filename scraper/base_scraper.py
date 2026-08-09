@@ -15,6 +15,15 @@ logging.basicConfig(
 )
 
 
+# Bestandsnaam-fragmenten die op een logo/watermerk/icoon wijzen i.p.v. een
+# echte foto van de woning — deze slaan we altijd over bij het opbouwen van
+# de foto-galerij (case-insensitive substring match op de URL).
+IMAGE_EXCLUDE_HINTS = (
+    "logo", "watermark", "favicon", "sprite", "placeholder", "avatar",
+    "icon-", "-icon", "/icons/",
+)
+
+
 class BaseScraper:
     source_name: str = ""  # override in subclass
 
@@ -59,6 +68,40 @@ class BaseScraper:
     def parse_int(self, text: str) -> int | None:
         m = re.search(r"\d+", text or "")
         return int(m.group()) if m else None
+
+    def clean_text(self, text: str | None, max_len: int = 6000) -> str | None:
+        """Whitespace normaliseren en inkorten. None/leeg blijft None."""
+        if not text:
+            return None
+        t = re.sub(r"\s+", " ", text).strip()
+        return t[:max_len].strip() if t else None
+
+    def clean_images(self, urls: list[str], limit: int = 40) -> list[str]:
+        """
+        Bouwt een schone foto-galerij: logo's/watermerken/iconen eruit,
+        protocol-relative //-urls fixen, en resolutie-varianten van dezelfde
+        foto (bv. ...-600x400.jpg vs ...-1200x800.jpg) samenvoegen tot één
+        entry — de grootste variant wint. Volgorde van eerste voorkomen blijft
+        behouden.
+        """
+        best: dict[str, tuple[int, str]] = {}
+        order: list[str] = []
+        for u in urls:
+            if not u:
+                continue
+            if u.startswith("//"):
+                u = "https:" + u
+            lu = u.lower()
+            if any(h in lu for h in IMAGE_EXCLUDE_HINTS):
+                continue
+            m = re.search(r"-(\d+)x(\d+)(?=\.\w+(?:\?.*)?$)", u)
+            base = re.sub(r"-\d+x\d+(?=\.\w+(?:\?.*)?$)", "", u)
+            score = int(m.group(1)) * int(m.group(2)) if m else 10**9
+            if base not in best or score > best[base][0]:
+                best[base] = (score, u)
+            if base not in order:
+                order.append(base)
+        return [best[b][1] for b in order][:limit]
 
     def abs_url(self, base_or_path: str, path: str = "") -> str:
         """abs_url(path) or abs_url(base, path)"""

@@ -394,13 +394,15 @@ export default function DetailPage() {
                 )}
               </div>
 
-              {listing.agent_name && (
+              {(listing.agent_name || listing.agent_company) && (
                 <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #F4F4F5' }}>
                   <p style={{ color: '#A1A1AA', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                     Aangeboden door
                   </p>
-                  <p style={{ fontWeight: 600, color: INK, fontSize: 14 }}>{listing.agent_name}</p>
-                  {listing.agent_company && (
+                  <p style={{ fontWeight: 600, color: INK, fontSize: 14 }}>
+                    {listing.agent_name || listing.agent_company}
+                  </p>
+                  {listing.agent_name && listing.agent_company && (
                     <p style={{ color: '#71717A', fontSize: 12, marginTop: 2 }}>{listing.agent_company}</p>
                   )}
                 </div>

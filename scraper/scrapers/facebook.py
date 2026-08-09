@@ -299,4 +299,8 @@ class FacebookScraper:
             longitude=None,
             is_private=is_private,
             agency_hint=agency_hint,
+            agent_company=(
+                "Particulier (Facebook)" if is_private
+                else (agency_hint.title() if agency_hint else "Facebook Marketplace")
+            ),
         )
