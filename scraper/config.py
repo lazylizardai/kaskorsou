@@ -35,6 +35,7 @@ SOURCES = {
         "priority": 7,
     },
     "facebook": {
+        "id": "facebook",
         "name": "Facebook Marketplace",
         "base_url": "https://www.facebook.com",
         "listings_url": "https://www.facebook.com/marketplace/curacao/propertyrentals",
