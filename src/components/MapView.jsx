@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { hasActiveScan } from '../lib/scan'
+import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
+import { useVideoTour } from '../context/VideoTourContext'
 import { formatPrice } from '../lib/currency'
 
 const CURACAO_CENTER = [12.1696, -68.9900]
@@ -115,6 +117,11 @@ function buildPopupHTML(listing) {
       <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#374151;margin-bottom:12px">
         ${beds}${baths}${sqm}
       </div>
+      ${hasVideoTour(listing) ? `
+      <button
+        data-video-url="${listing.video_url}"
+        style="width:100%;padding:7px 12px;margin-bottom:6px;background:linear-gradient(135deg,#F0805A,#E8672A);color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px"
+      ><svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor"><path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></svg>Video Tour bekijken</button>` : ''}
       <button
         data-listing-id="${listing.id}"
         style="width:100%;padding:7px 12px;background:#09090b;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit"
@@ -144,6 +151,7 @@ function makePriceBadgeEl(listing, isSelected) {
 }
 
 export default function MapView({ listings = [], selectedId, onMarkerClick }) {
+  const { openVideo } = useVideoTour()
   const mapContainer = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef([])
@@ -207,6 +215,11 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         popup.on('add', () => {
           const btn = popup.getElement()?.querySelector('[data-listing-id]')
           if (btn) btn.addEventListener('click', () => onMarkerClick?.(listing))
+          const videoBtn = popup.getElement()?.querySelector('[data-video-url]')
+          if (videoBtn) videoBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation()
+            openVideo({ url: buildVideoStreamUrl(listing.video_url), title: listing.title })
+          })
         })
       })
 
