@@ -274,6 +274,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "novo_casa_realty": {
+        "id": "novo_casa_realty",
+        "name": "Novo Casa Realty",
+        "base_url": "https://novocasarealty.com",
+        "listings_url": "https://novocasarealty.com/estate_property-sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
