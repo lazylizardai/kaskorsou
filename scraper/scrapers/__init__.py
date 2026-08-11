@@ -27,6 +27,7 @@ from .top_makelaar import TopMakelaarScraper
 from .bru_de_roque import BruDeRoqueScraper
 from .domicilie import DomicilieScraper
 from .pricematch import PriceMatchScraper
+from .curacao_homes import CuracaoHomesScraper
 
 __all__ = [
     "RemaxScraper",
@@ -58,4 +59,5 @@ __all__ = [
     "BruDeRoqueScraper",
     "DomicilieScraper",
     "PriceMatchScraper",
+    "CuracaoHomesScraper",
 ]
