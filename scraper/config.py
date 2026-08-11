@@ -162,6 +162,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "real_estate_caribe": {
+        "id": "real_estate_caribe",
+        "name": "Real Estate Caribe",
+        "base_url": "https://www.realestatecaribe.com",
+        "listings_url": "https://www.realestatecaribe.com/wp-json/wp/v2/property",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
