@@ -74,6 +74,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "keller_williams": {
+        "id": "keller_williams",
+        "name": "Keller Williams Curacao",
+        "base_url": "https://kw-curacao.com",
+        "listings_url": "https://kw-curacao.com/listings",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
