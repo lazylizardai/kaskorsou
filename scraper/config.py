@@ -306,6 +306,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "caribbean_evolution_realty": {
+        "id": "caribbean_evolution_realty",
+        "name": "Caribbean Evolution Realty",
+        "base_url": "https://www.caribbeanevolutionrealty.com",
+        "listings_url": "https://www.caribbeanevolutionrealty.com/index.php?rest_route=/wp/v2/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
