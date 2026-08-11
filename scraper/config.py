@@ -298,6 +298,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "salas_real_estate": {
+        "id": "salas_real_estate",
+        "name": "Salas Real Estate",
+        "base_url": "https://www.salasrealestate.net",
+        "listings_url": "https://www.salasrealestate.net/sitemap.xml",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {

@@ -50,6 +50,7 @@ from .scrapers import (
     NovoCasaRealtyScraper,
     DmjMakelaarScraper,
     WigboldScraper,
+    SalasRealEstateScraper,
 )
 
 logging.basicConfig(
@@ -97,6 +98,7 @@ ALL_SCRAPERS = [
     ERAScraper,          # priority 7
     DmjMakelaarScraper,  # priority 9 (laagste, zeer lage yield — 3 listings)
     WigboldScraper,      # priority 8
+    SalasRealEstateScraper,  # priority 6 (kleine site, 3 van de 6 listings actief)
 ]
 
 
