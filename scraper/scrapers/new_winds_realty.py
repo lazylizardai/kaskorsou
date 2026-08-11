@@ -23,16 +23,42 @@ class NewWindsRealtyScraper(BaseScraper):
     BASE = "https://www.newwindsrealty.com"
     AGENT_COMPANY = "New Winds Realty"
 
+    def _fetch(self, url: str, tries: int = 4):
+        """GET met retry/backoff — de site draait op WordPress.com/WPCloud (Automattic),
+        die bekend staat om agressieve 429-blokkades op cloud/datacenter-IP-ranges
+        (o.a. GitHub Actions). Respecteert Retry-After als die er is."""
+        r = None
+        for attempt in range(tries):
+            try:
+                r = self.session.get(url, timeout=40)
+            except Exception as e:
+                self.logger.warning(f"new_winds_realty: request naar {url} faalde: {e}")
+                r = None
+            if r is not None and r.status_code == 429:
+                wait = int(r.headers.get("Retry-After", 0) or 0)
+                wait = max(wait, 15 * (attempt + 1))
+                self.logger.warning(
+                    f"new_winds_realty: 429 op {url} (poging {attempt+1}/{tries}), "
+                    f"wacht {wait}s"
+                )
+                time.sleep(wait)
+                continue
+            if r is not None and r.status_code == 200:
+                return r
+            if attempt < tries - 1:
+                time.sleep(5 * (attempt + 1))
+        return r
+
     def scrape(self) -> list[Listing]:
         results: list[Listing] = []
 
         page = 1
         props = []
         while page <= 5:
-            r = self.session.get(
-                f"{self.BASE}/wp-json/wp/v2/properties?per_page=100&page={page}",
-                timeout=40,
-            )
+            r = self._fetch(f"{self.BASE}/wp-json/wp/v2/properties?per_page=100&page={page}")
+            if r is None:
+                self.logger.warning(f"new_winds_realty: geen response voor pagina {page}")
+                break
             try:
                 batch = r.json()
             except Exception as e:
@@ -99,7 +125,7 @@ class NewWindsRealtyScraper(BaseScraper):
         images: list[str] = []
 
         try:
-            dr = self.session.get(url, timeout=40)
+            dr = self._fetch(url)
             if dr is not None and dr.status_code == 200 and BeautifulSoup:
                 soup = BeautifulSoup(dr.text, "lxml")
 
