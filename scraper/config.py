@@ -178,6 +178,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "landmark": {
+        "id": "landmark",
+        "name": "Landmark Real Estate",
+        "base_url": "https://www.landmark.cw",
+        "listings_url": "https://www.landmark.cw/nl/realtime-listings/consumer",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
