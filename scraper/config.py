@@ -82,6 +82,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "curahousecare": {
+        "id": "curahousecare",
+        "name": "CuraHouseCare",
+        "base_url": "https://curahousecare.com",
+        "listings_url": "https://curahousecare.com/wp-json/wp/v2/objecten",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {

@@ -8,6 +8,7 @@ from .caresto import CarestoScraper
 from .livinggoed import LivinggoedScraper
 from .new_winds_realty import NewWindsRealtyScraper
 from .keller_williams import KellerWilliamsScraper
+from .curahousecare import CuraHouseCareScraper
 
 __all__ = [
     "RemaxScraper",
@@ -20,4 +21,5 @@ __all__ = [
     "LivinggoedScraper",
     "NewWindsRealtyScraper",
     "KellerWilliamsScraper",
+    "CuraHouseCareScraper",
 ]
