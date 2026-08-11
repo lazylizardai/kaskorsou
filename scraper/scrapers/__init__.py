@@ -21,6 +21,7 @@ from .palmstone import PalmstoneScraper
 from .real_estate_caribe import RealEstateCaribeScraper
 from .ruseler import RuselerScraper
 from .landmark import LandmarkScraper
+from .kostabon import KostabonScraper
 
 __all__ = [
     "RemaxScraper",
@@ -46,4 +47,5 @@ __all__ = [
     "RealEstateCaribeScraper",
     "RuselerScraper",
     "LandmarkScraper",
+    "KostabonScraper",
 ]

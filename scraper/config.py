@@ -186,6 +186,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "kostabon": {
+        "id": "kostabon",
+        "name": "Kostabon",
+        "base_url": "https://kostabon.com",
+        "listings_url": "https://kostabon.com/properties-sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
