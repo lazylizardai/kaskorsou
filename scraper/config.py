@@ -218,6 +218,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "domicilie": {
+        "id": "domicilie",
+        "name": "Domicilie Real Estate",
+        "base_url": "https://www.domicilie.net",
+        "listings_url": "https://www.domicilie.net/wp-sitemap-posts-property-1.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
