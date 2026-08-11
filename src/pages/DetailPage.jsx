@@ -98,8 +98,8 @@ function TourSection({ listing, hasScan, hasVideo }) {
       </div>
 
       {tab === 'tour' && hasTour ? (
-        <div style={{
-          position: 'relative', height: 520, borderRadius: 16, overflow: 'hidden',
+        <div className="h-[300px] md:h-[520px]" style={{
+          position: 'relative', borderRadius: 16, overflow: 'hidden',
           boxShadow: `0 0 0 1.5px ${GOLD}, 0 12px 36px rgba(212,162,76,0.20)`,
           background: '#0B1120',
         }}>
@@ -130,8 +130,8 @@ function TourSection({ listing, hasScan, hasVideo }) {
           3D Tour wordt binnenkort toegevoegd
         </div>
       ) : tab === 'video' && hasVideo ? (
-        <div style={{
-          position: 'relative', height: 520, borderRadius: 16, overflow: 'hidden',
+        <div className="h-[300px] md:h-[520px]" style={{
+          position: 'relative', borderRadius: 16, overflow: 'hidden',
           boxShadow: `0 0 0 1.5px ${CORAL}, 0 12px 36px rgba(232,103,42,0.20)`,
           background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
@@ -173,7 +173,7 @@ function Gallery({ images }) {
   return (
     <>
       {/* Grid gallery */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 6, height: 480, borderRadius: 16, overflow: 'hidden' }}>
+      <div className="h-[300px] md:h-[480px]" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 6, borderRadius: 16, overflow: 'hidden' }}>
         <div
           style={{ gridRow: '1/3', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}
           onClick={() => { setCurrent(0); setLightbox(true) }}
@@ -304,7 +304,7 @@ export default function DetailPage() {
   return (
     <>
     <div style={{ paddingTop: 72, minHeight: '100dvh', background: 'white', fontFamily: 'Geist, system-ui, sans-serif' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px 80px' }}>
+      <div className="pb-32 lg:pb-20" style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 24, paddingLeft: 20, paddingRight: 20 }}>
 
         {/* Back */}
         <button aria-label="Terug" onClick={() => navigate(-1)}
@@ -360,7 +360,7 @@ export default function DetailPage() {
                 <div style={{ position: 'relative' }}>
                   <button aria-label="Deel woning" onClick={handleShare}
                     style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid #E4E4E7', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}
-                    className="hover:bg-zinc-50 transition-colors">
+                    className="kk-tap-target hover:bg-zinc-50 transition-colors">
                     <ShareNetwork size={16} style={{ color: '#71717A' }} />
                   </button>
                   <AnimatePresence>
@@ -373,6 +373,7 @@ export default function DetailPage() {
                   </AnimatePresence>
                 </div>
                 <motion.button onClick={handleFavorite} whileTap={{ scale: 0.85 }}
+                  className="kk-tap-target"
                   style={{ width: 40, height: 40, borderRadius: '50%', border: `1.5px solid ${isFavorite ? CORAL : '#E4E4E7'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isFavorite ? '#FFF5F0' : 'white', transition: 'background-color 0.2s, border-color 0.2s' }}>
                   <Heart size={16} weight={isFavorite ? 'fill' : 'regular'} style={{ color: isFavorite ? CORAL : '#71717A' }} />
                 </motion.button>
@@ -569,6 +570,48 @@ export default function DetailPage() {
         </div>
       </div>
     </div>
+
+    {/* Mobile sticky price + CTA bar — op desktop staat de prijskaart al
+        zichtbaar in de rechterkolom, dus deze balk is overbodig vanaf lg. */}
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-center gap-3 bg-white"
+      style={{
+        borderTop: '1px solid #E4E4E7',
+        boxShadow: '0 -8px 24px rgba(0,0,0,0.08)',
+        padding: '10px 16px calc(10px + env(safe-area-inset-bottom))',
+      }}>
+      <div style={{ minWidth: 0, flexShrink: 1 }}>
+        <p style={{ color: INK, fontWeight: 800, fontSize: 17, letterSpacing: '-0.03em', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+          {formatPrice(listing.price, listing.currency, listing.listing_type)}
+        </p>
+        {listing.listing_type === 'rent' && (
+          <p style={{ color: '#71717A', fontSize: 11, marginTop: 1 }}>per maand</p>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
+        {!contactSent ? (
+          <>
+            <button
+              aria-label="Bel makelaar"
+              onClick={() => setContactSent(true)}
+              style={{ background: 'white', color: TEAL, width: 44, height: 44, borderRadius: 12, border: `1.5px solid ${TEAL}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              className="hover:bg-teal-50 transition-colors kk-tap-target">
+              <Phone size={18} weight="bold" />
+            </button>
+            <button
+              onClick={() => setContactSent(true)}
+              style={{ background: TEAL, color: 'white', padding: '0 18px', height: 44, borderRadius: 12, fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}
+              className="hover:opacity-90 transition-opacity kk-tap-target">
+              <Envelope size={16} /> Stuur bericht
+            </button>
+          </>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: TEAL, fontWeight: 600, fontSize: 13, padding: '0 4px' }}>
+            <CheckCircle size={20} weight="fill" /> Aanvraag ontvangen
+          </div>
+        )}
+      </div>
+    </div>
+
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </>
   )

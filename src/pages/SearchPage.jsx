@@ -11,6 +11,7 @@ import MapView from '../components/MapView'
 import { getListings } from '../lib/supabase'
 import { hasActiveScan } from '../lib/scan'
 import { toUSD } from '../lib/currency'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const TEAL = '#006B7D'
 const INK = '#09090B'
@@ -49,13 +50,18 @@ function BuyRentToggle({ value, onChange }) {
 export default function SearchPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const isMobile = useIsMobile()
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
   const [view, setView] = useState(() => {
     const v = searchParams.get('view')
-    return ['split', 'list', 'map'].includes(v) ? v : 'split'
+    const requested = ['split', 'list', 'map'].includes(v) ? v : 'split'
+    // 'split' (twee kolommen naast elkaar) past niet op een telefoonscherm —
+    // begin daar altijd met de lijst, ook als de URL split expliciet vraagt.
+    if (typeof window !== 'undefined' && window.innerWidth < 768 && requested === 'split') return 'list'
+    return requested
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
@@ -90,6 +96,12 @@ export default function SearchPage() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  // Vangnet: als het venster tijdens de sessie smaller wordt dan 768px terwijl
+  // 'split' actief staat (bv. tablet die gedraaid wordt), val terug op lijst.
+  useEffect(() => {
+    if (isMobile && view === 'split') setView('list')
+  }, [isMobile, view])
 
   const filtered = useMemo(() => {
     let result = listings.filter((l) => {
@@ -194,8 +206,8 @@ export default function SearchPage() {
           )}
         </button>
 
-        <div className="relative hidden sm:block" ref={sortRef}>
-          <button onClick={() => setSortOpen(o => !o)}
+        <div className="relative" ref={sortRef}>
+          <button onClick={() => setSortOpen(o => !o)} aria-label="Sorteren"
             style={{ border: '1px solid #E4E4E7', color: '#3F3F46' }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white">
             <SortAscending size={14} />
@@ -270,9 +282,9 @@ export default function SearchPage() {
         {(view === 'split' || view === 'list') && (
           <div ref={cardsContainerRef}
             style={{
-              width: view === 'split' ? '50%' : '100%',
+              width: view === 'split' && !isMobile ? '50%' : '100%',
               height: '100%', overflowY: 'auto', background: '#FAFAFA',
-              borderRight: view === 'split' ? '1px solid #E4E4E7' : 'none', flexShrink: 0,
+              borderRight: view === 'split' && !isMobile ? '1px solid #E4E4E7' : 'none', flexShrink: 0,
             }}>
             <div style={{ padding: '16px', display: 'grid', gap: 12,
               gridTemplateColumns: view === 'list'

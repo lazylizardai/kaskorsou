@@ -191,7 +191,7 @@ export default function HomePage() {
                 <MagnifyingGlass size={20} weight="bold" style={{ color: '#A1A1AA', flexShrink: 0, marginLeft: 8 }} />
                 <input type="text" placeholder="Zoek op wijk, adres of type woning..."
                   value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: INK, fontSize: 15 }}
+                  style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: INK, fontSize: 15 }}
                   className="placeholder:text-zinc-400" />
                 <div className="hidden md:flex items-center gap-2 pr-2 border-r border-zinc-100">
                   {['Villa', 'Appartement'].map(t => (

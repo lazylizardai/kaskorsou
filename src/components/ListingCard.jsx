@@ -93,11 +93,11 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
           {/* Arrows */}
           {images.length > 1 && (<>
             <button aria-label="Vorige foto" onClick={prevImg}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white">
+              className="kk-tap-target absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white">
               <CaretLeft size={14} weight="bold" style={{ color: '#09090B' }} />
             </button>
             <button aria-label="Volgende foto" onClick={nextImg}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white">
+              className="kk-tap-target absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white">
               <CaretRight size={14} weight="bold" style={{ color: '#09090B' }} />
             </button>
           </>)}
@@ -117,7 +117,7 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
             {/* Share */}
             <div className="relative">
               <button aria-label="Deel woning" onClick={handleShare}
-                className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors shadow-sm opacity-0 group-hover:opacity-100">
+                className="kk-tap-target w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors shadow-sm opacity-0 group-hover:opacity-100">
                 <ShareNetwork size={14} style={{ color: '#71717A' }} />
               </button>
               <AnimatePresence>
@@ -133,7 +133,7 @@ export default function ListingCard({ listing, highlighted, onRequireAuth }) {
             {/* Favorite */}
             <motion.button aria-label={isFav ? 'Verwijder uit favorieten' : 'Bewaar als favoriet'} onClick={handleFavorite}
               whileTap={{ scale: 0.85 }}
-              className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors shadow-sm">
+              className="kk-tap-target w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors shadow-sm">
               <Heart size={15} weight={isFav ? 'fill' : 'regular'} style={{ color: isFav ? CORAL : '#71717A' }} />
             </motion.button>
           </div>

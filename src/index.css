@@ -247,3 +247,32 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Mobile responsive fixes (11 aug) ── */
+
+/* Op touch-apparaten bestaat er geen :hover-state — alles dat alleen bij
+   hover verschijnt (foto-pijltjes op cards, share-knop, video-play-knop,
+   wijk-kaart-pijltje, ...) moet daar permanent zichtbaar zijn, anders is
+   die functie onbereikbaar op mobiel/tablet. */
+@media (hover: none) {
+  .group-hover\:opacity-100 {
+    opacity: 1 !important;
+  }
+}
+
+/* Minimumbreedte 320px voor alle knoppen/links die als primair tikdoel
+   dienen maar dat door absolute-positionering of flex-krimp konden verliezen
+   op smalle schermen — zie ll-ui-check tikdoelen-regel (44px). */
+@media (max-width: 767px) {
+  .kk-tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Geen grijze/blauwe tik-highlight en direct native touch-gedrag i.p.v. de
+   browser eerst te laten wachten op een mogelijke dubbeltik/zoom. */
+button, a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
