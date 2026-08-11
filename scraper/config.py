@@ -90,6 +90,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "international_fine_living": {
+        "id": "international_fine_living",
+        "name": "International Fine Living",
+        "base_url": "https://www.internationalfineliving.com",
+        "listings_url": "https://cpl01.ogonline.nl/api/listings",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {

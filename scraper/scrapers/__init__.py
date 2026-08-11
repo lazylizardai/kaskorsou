@@ -9,6 +9,7 @@ from .livinggoed import LivinggoedScraper
 from .new_winds_realty import NewWindsRealtyScraper
 from .keller_williams import KellerWilliamsScraper
 from .curahousecare import CuraHouseCareScraper
+from .international_fine_living import InternationalFineLivingScraper
 
 __all__ = [
     "RemaxScraper",
@@ -22,4 +23,5 @@ __all__ = [
     "NewWindsRealtyScraper",
     "KellerWilliamsScraper",
     "CuraHouseCareScraper",
+    "InternationalFineLivingScraper",
 ]
