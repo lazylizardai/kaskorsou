@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster'
 import { hasActiveScan } from '../lib/scan'
 import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
 import { useVideoTour } from '../context/VideoTourContext'
@@ -150,10 +152,23 @@ function makePriceBadgeEl(listing, isSelected) {
   return el
 }
 
+// Cluster badge — teal circle with count, gold ring if it bundles a 3D-tour listing
+function makeClusterIcon(cluster) {
+  const count = cluster.getChildCount()
+  const hasScan = cluster.getAllChildMarkers().some(m => m._kkHasScan)
+  const size = count < 10 ? 38 : count < 30 ? 46 : count < 80 ? 54 : 62
+  return L.divIcon({
+    html: `<div class="kk-cluster-badge${hasScan ? ' has-scan' : ''}" style="width:${size}px;height:${size}px">${count}</div>`,
+    className: '',
+    iconSize: [size, size],
+  })
+}
+
 export default function MapView({ listings = [], selectedId, onMarkerClick }) {
   const { openVideo } = useVideoTour()
   const mapContainer = useRef(null)
   const mapRef = useRef(null)
+  const clusterGroupRef = useRef(null)
   const markersRef = useRef([])
   const coordsRef = useRef({})
   const activePopupRef = useRef(null)
@@ -171,19 +186,33 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
       attribution: '©OpenStreetMap ©CARTO', subdomains: 'abcd', maxZoom: 19,
     }).addTo(map)
     L.control.zoom({ position: 'topright' }).addTo(map)
+
+    const clusterGroup = L.markerClusterGroup({
+      iconCreateFunction: makeClusterIcon,
+      maxClusterRadius: 65,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      animate: true,
+    })
+    clusterGroup.addTo(map)
+    clusterGroupRef.current = clusterGroup
+
     mapRef.current = map
     setReady(true)
-    return () => { map.remove(); mapRef.current = null }
+    return () => { map.remove(); mapRef.current = null; clusterGroupRef.current = null }
   }, [])
 
-  // Render individual price badge markers (all zoom levels)
+  // Render individual price badge markers, grouped into clusters when crowded
   useEffect(() => {
-    if (!mapRef.current || !ready) return
+    if (!mapRef.current || !ready || !clusterGroupRef.current) return
 
     // Clear existing markers + popup
-    markersRef.current.forEach(m => m.remove())
+    clusterGroupRef.current.clearLayers()
     markersRef.current = []
     if (activePopupRef.current) { activePopupRef.current.remove(); activePopupRef.current = null }
+
+    const newMarkers = []
 
     listings.forEach((listing) => {
       const coords = getCoords(listing)
@@ -231,10 +260,13 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
           iconSize: [0, 0],
         }),
         zIndexOffset: isSelected ? 1000 : hasScan ? 500 : 0,
-      }).addTo(mapRef.current)
-
-      markersRef.current.push(m)
+      })
+      m._kkHasScan = hasScan
+      newMarkers.push(m)
     })
+
+    clusterGroupRef.current.addLayers(newMarkers)
+    markersRef.current = newMarkers
   }, [listings, selectedId, ready, onMarkerClick])
 
   // FlyTo selected listing
@@ -304,6 +336,26 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         @keyframes kk-pulse {
           0%, 100% { box-shadow: 0 3px 10px rgba(212,162,76,0.55), inset 0 1px 0 rgba(255,255,255,0.4); }
           50%      { box-shadow: 0 4px 16px rgba(212,162,76,0.85), inset 0 1px 0 rgba(255,255,255,0.5); }
+        }
+        /* Cluster badges — vervangen losse prijs-pills zodra ze te dicht op elkaar staan */
+        .kk-cluster-badge {
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 50%;
+          background: #006B7D;
+          color: white;
+          font-weight: 800;
+          font-size: 13px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          box-shadow: 0 3px 10px rgba(0,107,125,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+          border: 2.5px solid rgba(255,255,255,0.92);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .kk-cluster-badge.has-scan {
+          box-shadow: 0 3px 10px rgba(0,107,125,0.45), 0 0 0 3px rgba(232,181,71,0.6);
+        }
+        .marker-cluster:hover .kk-cluster-badge {
+          transform: scale(1.08);
+          box-shadow: 0 5px 16px rgba(0,107,125,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
         }
         /* Popup styles */
         .kk-popup .leaflet-popup-content-wrapper {
