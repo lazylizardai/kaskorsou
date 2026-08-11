@@ -30,6 +30,7 @@ from .pricematch import PriceMatchScraper
 from .curacao_homes import CuracaoHomesScraper
 from .curacao_real_estate_solution import CuracaoRealEstateSolutionScraper
 from .gs_realestate import GSRealEstateScraper
+from .martis_partners import MartisPartnersScraper
 
 __all__ = [
     "RemaxScraper",
@@ -64,4 +65,5 @@ __all__ = [
     "CuracaoHomesScraper",
     "CuracaoRealEstateSolutionScraper",
     "GSRealEstateScraper",
+    "MartisPartnersScraper",
 ]

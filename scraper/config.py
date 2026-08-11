@@ -258,6 +258,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "martis_partners": {
+        "id": "martis_partners",
+        "name": "Martis Partners",
+        "base_url": "https://martis-partners.com",
+        "listings_url": "https://martis-partners.com/koopwoningen",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
