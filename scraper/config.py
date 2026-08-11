@@ -266,6 +266,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "cur_estates": {
+        "id": "cur_estates",
+        "name": "Cur-Estates",
+        "base_url": "https://www.cur-estates.com",
+        "listings_url": "https://www.cur-estates.com/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
