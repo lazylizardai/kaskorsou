@@ -130,6 +130,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "curacao_exclusive": {
+        "id": "curacao_exclusive",
+        "name": "Curaçao Exclusive Real Estate",
+        "base_url": "https://www.curacao-exclusive-realestate.com",
+        "listings_url": "https://www.curacao-exclusive-realestate.com/wp-json/wp/v2/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
