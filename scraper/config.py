@@ -242,6 +242,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "curacao_real_estate_solution": {
+        "id": "curacao_real_estate_solution",
+        "name": "Curaçao Real Estate Solution",
+        "base_url": "https://curacaorealestatesolution.com",
+        "listings_url": "https://curacaorealestatesolution.com/wp-json/wp/v2/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
