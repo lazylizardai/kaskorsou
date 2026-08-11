@@ -43,7 +43,7 @@ jobs:
           # Facebook scraper requires Playwright + local cookies — runs via Windows Task Scheduler instead
           # sunbelt & era zijn offline (DNS dood). century21 zit achter AWS WAF:
           # levert ~72 listings via requests, daarna 403 (volledige set vereist een browser).
-          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,century21"
+          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,century21,new_winds_realty"
           SOURCES_ARG=""
           DRY_RUN_ARG=""
           if [ -n "${{ github.event.inputs.sources }}" ]; then

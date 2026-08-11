@@ -66,6 +66,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "new_winds_realty": {
+        "id": "new_winds_realty",
+        "name": "New Winds Realty",
+        "base_url": "https://www.newwindsrealty.com",
+        "listings_url": "https://www.newwindsrealty.com/wp-json/wp/v2/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
