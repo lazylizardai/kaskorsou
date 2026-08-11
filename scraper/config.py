@@ -250,6 +250,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "gs_realestate": {
+        "id": "gs_realestate",
+        "name": "GS Real Estate B.V.",
+        "base_url": "https://www.gs-realestate.com",
+        "listings_url": "https://www.gs-realestate.com/property-sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
