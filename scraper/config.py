@@ -154,6 +154,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "palmstone": {
+        "id": "palmstone",
+        "name": "Palmstone Real Estate",
+        "base_url": "https://palmstone.realestate",
+        "listings_url": "https://palmstone.realestate/listings/for-sale",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
