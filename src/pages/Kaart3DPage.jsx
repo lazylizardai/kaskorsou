@@ -131,6 +131,8 @@ function applyBrandColors(map) {
   }
 }
 
+const PLAY_SVG = `<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></svg>`
+
 function makePinEl() {
   const el = document.createElement('div')
   el.className = 'kk3d-pin'
@@ -144,6 +146,20 @@ function makePinEl() {
   return el
 }
 
+// Oranje variant voor video-tour-listings (zelfde merkkleur als de Video Tour-badges)
+function makeVideoPinEl() {
+  const el = document.createElement('div')
+  el.className = 'kk3d-pin video-pin'
+  el.setAttribute('role', 'button')
+  el.setAttribute('tabindex', '0')
+  el.setAttribute('aria-label', 'Woning met Video Tour')
+  el.innerHTML = `
+    <span class="kk3d-pin-pulse" aria-hidden="true"></span>
+    <span class="kk3d-pin-body">${PLAY_SVG}</span>
+    <span class="kk3d-pin-tip" aria-hidden="true"></span>`
+  return el
+}
+
 export default function Kaart3DPage() {
   const navigate = useNavigate()
   const { openVideo } = useVideoTour()
@@ -151,6 +167,7 @@ export default function Kaart3DPage() {
   const mapRef = useRef(null)
   const popupRef = useRef(null)
   const pinMarkersRef = useRef([])
+  const videoPinMarkersRef = useRef([])
   const navigateRef = useRef(navigate)
   navigateRef.current = navigate
   const openVideoRef = useRef(openVideo)
@@ -172,7 +189,10 @@ export default function Kaart3DPage() {
     ), [listings])
 
   const tourListings = useMemo(() => mapListings.filter(l => hasActiveScan(l)), [mapListings])
-  const normalListings = useMemo(() => mapListings.filter(l => !hasActiveScan(l)), [mapListings])
+  // Video-tour listings zonder 3D-scan krijgen hun eigen oranje pin (net als
+  // de gouden 3D-tour-pins) i.p.v. te verdwijnen in de gewone teal-cluster.
+  const videoListings = useMemo(() => mapListings.filter(l => !hasActiveScan(l) && hasVideoTour(l)), [mapListings])
+  const normalListings = useMemo(() => mapListings.filter(l => !hasActiveScan(l) && !hasVideoTour(l)), [mapListings])
 
   useEffect(() => {
     let alive = true
@@ -315,6 +335,8 @@ export default function Kaart3DPage() {
       clearTimeout(failTimer)
       pinMarkersRef.current.forEach(m => m.remove())
       pinMarkersRef.current = []
+      videoPinMarkersRef.current.forEach(m => m.remove())
+      videoPinMarkersRef.current = []
       if (popupRef.current) { popupRef.current.remove(); popupRef.current = null }
       map.remove()
       mapRef.current = null
@@ -425,6 +447,32 @@ export default function Kaart3DPage() {
     })
   }, [tourListings, mapReady])
 
+  // ── Video-tour pins: zelfde aparte-marker-aanpak, oranje i.p.v. goud ──
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    videoPinMarkersRef.current.forEach(m => m.remove())
+    videoPinMarkersRef.current = []
+
+    videoListings.forEach(l => {
+      const el = makeVideoPinEl()
+      const props = {
+        id: l.id, title: l.title || 'Woning', price: l.price || 0,
+        listing_type: l.listing_type || 'sale',
+        bedrooms: l.bedrooms || 0, bathrooms: l.bathrooms || 0, area_sqm: l.area_sqm || 0,
+        image: (l.images && l.images[0]) || '', scan: 'false',
+        video: 'true', video_url: buildVideoStreamUrl(l.video_url) || '',
+      }
+      const open = (e) => { e.stopPropagation?.(); openPopupRef.current(props, [l.longitude, l.latitude]) }
+      el.addEventListener('click', open)
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(e) } })
+      const marker = new MaplibreMarker({ element: el, anchor: 'bottom' })
+        .setLngLat([l.longitude, l.latitude])
+        .addTo(map)
+      videoPinMarkersRef.current.push(marker)
+    })
+  }, [videoListings, mapReady])
+
   // ── Toggle "Alleen 3D-tours": verberg de normale lagen ──
   useEffect(() => {
     const map = mapRef.current
@@ -488,6 +536,14 @@ export default function Kaart3DPage() {
           100% { transform: scale(2); opacity: 0; }
         }
         @media (prefers-reduced-motion: reduce) { .kk3d-pin-pulse { animation: none; opacity: 0; } }
+        /* Video-tour pins — oranje merkkleur i.p.v. het 3D-tour-goud */
+        .kk3d-pin.video-pin .kk3d-pin-body {
+          background: linear-gradient(135deg, #F0805A 0%, #E8672A 50%, #C24E13 100%);
+          color: white;
+          box-shadow: 0 3px 10px rgba(200,78,19,0.55), inset 0 1px 0 rgba(255,255,255,0.45);
+        }
+        .kk3d-pin.video-pin .kk3d-pin-tip { border-top-color: #C24E13; }
+        .kk3d-pin.video-pin .kk3d-pin-pulse { background: rgba(232,103,42,0.5); }
         .kk3d-popup .maplibregl-popup-content {
           padding: 0; border-radius: 14px; overflow: hidden;
           box-shadow: 0 14px 44px rgba(9,42,52,0.28);

@@ -138,27 +138,39 @@ function buildPopupHTML(listing) {
 function makePriceBadgeEl(listing, isSelected) {
   const label = fmtPriceBadge(listing.price, listing.listing_type, listing.currency)
   const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
+  const hasVideo = hasVideoTour(listing)
   const el = document.createElement('div')
   const classes = ['kk-price-marker']
   if (isSelected) classes.push('selected')
   if (hasScan) classes.push('premium-scan')
+  // Video-tour valt visueel op met de oranje merkkleur — alleen als er geen
+  // 3D-scan-styling (goud) al actief is, om kleur-strijd op één badge te voorkomen.
+  if (hasVideo && !hasScan) classes.push('has-video')
   el.className = classes.join(' ')
   const cube = hasScan
     ? `<svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor" style="margin-right:4px;flex-shrink:0">
          <path d="M223.68,66.15,135.68,18a15.94,15.94,0,0,0-15.36,0l-88,48.17A16,16,0,0,0,24,80.21v95.58a16,16,0,0,0,8.32,14L120.32,238a15.91,15.91,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.21A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.78Zm96,129.57V133.78L216,90v85.78Z"/>
        </svg>`
-    : ''
+    : (hasVideo
+      ? `<svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor" style="margin-right:4px;flex-shrink:0">
+           <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/>
+         </svg>`
+      : '')
   el.innerHTML = `<div class="kk-price-badge">${cube}${label}</div>`
   return el
 }
 
-// Cluster badge — teal circle with count, gold ring if it bundles a 3D-tour listing
+// Cluster badge — teal circle with count, gold ring if it bundles a 3D-tour
+// listing, oranje ring als het (alleen) een video-tour-listing bundelt.
 function makeClusterIcon(cluster) {
   const count = cluster.getChildCount()
-  const hasScan = cluster.getAllChildMarkers().some(m => m._kkHasScan)
+  const members = cluster.getAllChildMarkers()
+  const hasScan = members.some(m => m._kkHasScan)
+  const hasVideo = members.some(m => m._kkHasVideo)
   const size = count < 10 ? 38 : count < 30 ? 46 : count < 80 ? 54 : 62
+  const ringClass = hasScan ? ' has-scan' : hasVideo ? ' has-video' : ''
   return L.divIcon({
-    html: `<div class="kk-cluster-badge${hasScan ? ' has-scan' : ''}" style="width:${size}px;height:${size}px">${count}</div>`,
+    html: `<div class="kk-cluster-badge${ringClass}" style="width:${size}px;height:${size}px">${count}</div>`,
     className: '',
     iconSize: [size, size],
   })
@@ -221,6 +233,7 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
 
       const isSelected = listing.id === selectedId
       const hasScan = hasActiveScan(listing) || listing.is_premium_scan === true
+      const hasVideo = hasVideoTour(listing)
       const el = makePriceBadgeEl(listing, isSelected)
 
       // Click: open popup + notify parent
@@ -262,6 +275,7 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         zIndexOffset: isSelected ? 1000 : hasScan ? 500 : 0,
       })
       m._kkHasScan = hasScan
+      m._kkHasVideo = hasVideo
       newMarkers.push(m)
     })
 
@@ -337,6 +351,22 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
           0%, 100% { box-shadow: 0 3px 10px rgba(212,162,76,0.55), inset 0 1px 0 rgba(255,255,255,0.4); }
           50%      { box-shadow: 0 4px 16px rgba(212,162,76,0.85), inset 0 1px 0 rgba(255,255,255,0.5); }
         }
+        /* Video-tour markers — oranje merkkleur, zelfde gradient als de Video Tour-badges */
+        .kk-price-marker.has-video .kk-price-badge {
+          background: linear-gradient(135deg, #F0805A 0%, #E8672A 100%);
+          color: white;
+          box-shadow: 0 3px 10px rgba(232,103,42,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .kk-price-marker.has-video:hover .kk-price-badge {
+          background: linear-gradient(135deg, #F3946F 0%, #EE7638 100%);
+          transform: scale(1.1);
+          box-shadow: 0 4px 14px rgba(232,103,42,0.65), inset 0 1px 0 rgba(255,255,255,0.35);
+        }
+        .kk-price-marker.has-video.selected .kk-price-badge {
+          background: linear-gradient(135deg, #F3946F 0%, #EE7638 100%);
+          transform: scale(1.15);
+          box-shadow: 0 4px 18px rgba(232,103,42,0.7), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
         /* Cluster badges — vervangen losse prijs-pills zodra ze te dicht op elkaar staan */
         .kk-cluster-badge {
           display: flex; align-items: center; justify-content: center;
@@ -352,6 +382,9 @@ export default function MapView({ listings = [], selectedId, onMarkerClick }) {
         }
         .kk-cluster-badge.has-scan {
           box-shadow: 0 3px 10px rgba(0,107,125,0.45), 0 0 0 3px rgba(232,181,71,0.6);
+        }
+        .kk-cluster-badge.has-video {
+          box-shadow: 0 3px 10px rgba(0,107,125,0.45), 0 0 0 3px rgba(232,103,42,0.65);
         }
         .marker-cluster:hover .kk-cluster-badge {
           transform: scale(1.08);
