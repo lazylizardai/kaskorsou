@@ -290,6 +290,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 9,
     },
+    "wigbold": {
+        "id": "wigbold",
+        "name": "Wigbold Real Estate",
+        "base_url": "https://www.wigboldrealestate.com",
+        "listings_url": "https://www.wigboldrealestate.com/en/realtime-listings/consumer",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
