@@ -202,6 +202,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "top_makelaar": {
+        "id": "top_makelaar",
+        "name": "TOP Makelaar Curacao",
+        "base_url": "https://www.topmakelaarcuracao.com",
+        "listings_url": "https://www.topmakelaarcuracao.com/aanbod",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
