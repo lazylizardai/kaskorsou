@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Heart, ShareNetwork, Bed, Bathtub, ArrowsOut,
-  MapPin, Calendar, Buildings, Phone, Envelope,
+  ArrowLeft, ArrowRight, ArrowSquareOut, Heart, ShareNetwork, Bed, Bathtub, ArrowsOut,
+  MapPin, Calendar, Buildings, Phone, Envelope, Storefront, ClockCounterClockwise,
   CaretLeft, CaretRight, X, CheckCircle, Cube, Image, Play,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,12 +11,27 @@ import { hasActiveScan, buildScanEmbedUrl } from '../lib/scan'
 import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
 import { useAuth } from '../context/AuthContext'
 import AuthModal from '../components/AuthModal'
+import MapView from '../components/MapView'
 import { formatPrice } from '../lib/currency'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
 const INK = '#09090B'
 const GOLD = '#D4A24C'
+
+// Bron-metadata weerspiegelt wanneer onze scraper de listing zag — niet
+// noodzakelijk de oorspronkelijke publicatiedatum bij de makelaar zelf.
+function formatSourceDate(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }).format(d)
+}
+
+function prettifySourceId(sourceId) {
+  if (!sourceId) return null
+  return sourceId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
 
 function TourSection({ listing, hasScan, hasVideo }) {
   const [tab, setTab] = useState(hasScan ? 'tour' : hasVideo ? 'video' : 'photos')
@@ -386,6 +401,86 @@ export default function DetailPage() {
                 {listing.description || 'Geen beschrijving beschikbaar.'}
               </p>
             </div>
+
+            {/* Bron & makelaar */}
+            {(() => {
+              const sourceLabel = listing.agent_company || prettifySourceId(listing.source_id) || 'Onbekende makelaar'
+              const listedDate = formatSourceDate(listing.first_seen_at)
+              const updatedDate = formatSourceDate(listing.last_seen_at)
+              if (!listing.source_id && !listing.url && !listedDate) return null
+              return (
+                <div style={{ marginBottom: 32, padding: 20, borderRadius: 14, background: '#FAFAFA', border: '1px solid #F0F0F1' }}>
+                  <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15, color: INK, marginBottom: 14 }}>
+                    <Storefront size={16} weight="fill" style={{ color: TEAL }} /> Aangeboden door
+                  </h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginBottom: 16 }}>
+                    <div>
+                      <p style={{ color: '#A1A1AA', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Makelaar</p>
+                      <p style={{ fontWeight: 600, color: INK, fontSize: 13 }}>{sourceLabel}</p>
+                    </div>
+                    {listedDate && (
+                      <div>
+                        <p style={{ color: '#A1A1AA', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Op KasKorsou sinds</p>
+                        <p style={{ fontWeight: 600, color: INK, fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <Calendar size={13} style={{ color: '#A1A1AA' }} />{listedDate}
+                        </p>
+                      </div>
+                    )}
+                    {updatedDate && (
+                      <div>
+                        <p style={{ color: '#A1A1AA', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Laatst bijgewerkt</p>
+                        <p style={{ fontWeight: 600, color: INK, fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <ClockCounterClockwise size={13} style={{ color: '#A1A1AA' }} />{updatedDate}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    {listing.url && (
+                      <a href={listing.url} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 9, fontSize: 13, fontWeight: 600, color: TEAL, border: `1.5px solid ${TEAL}`, background: 'white' }}
+                        className="hover:bg-teal-50 transition-colors">
+                        Bekijk dit huis op de website van de makelaar <ArrowSquareOut size={14} weight="bold" />
+                      </a>
+                    )}
+                    {listing.source_id && (
+                      <Link to={`/search?source=${encodeURIComponent(listing.source_id)}&sourceLabel=${encodeURIComponent(sourceLabel)}`}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 9, fontSize: 13, fontWeight: 600, color: INK, border: '1px solid #E4E4E7', background: 'white' }}
+                        className="hover:bg-zinc-50 transition-colors">
+                        Bekijk alle listings van {sourceLabel} <ArrowRight size={14} weight="bold" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Buurtkaart */}
+            {listing.neighborhood && (
+              <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontWeight: 700, fontSize: 17, color: INK, marginBottom: 12 }}>Buurt</h2>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Bekijk ${listing.neighborhood} op de kaart`}
+                  onClick={() => navigate(`/search?neighborhood=${encodeURIComponent(listing.neighborhood)}&view=map`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/search?neighborhood=${encodeURIComponent(listing.neighborhood)}&view=map`) } }}
+                  style={{ position: 'relative', height: 240, borderRadius: 16, overflow: 'hidden', border: '1px solid #E4E4E7', cursor: 'pointer' }}
+                  className="hover:opacity-95 transition-opacity">
+                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+                    <MapView listings={[listing]} selectedId={listing.id} />
+                  </div>
+                  <span style={{
+                    position: 'absolute', bottom: 12, right: 12, background: INK, color: 'white',
+                    fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 999,
+                    display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                    zIndex: 1,
+                  }}>
+                    <MapPin size={13} weight="fill" /> Bekijk {listing.neighborhood} op de kaart
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Features */}
             {listing.features?.length > 0 && (

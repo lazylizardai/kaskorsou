@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   MagnifyingGlass, Sliders, MapTrifold, List, X,
-  SortAscending, CaretDown, Globe,
+  SortAscending, CaretDown, Globe, Storefront,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import FilterSidebar from '../components/FilterSidebar'
@@ -48,19 +48,26 @@ function BuyRentToggle({ value, onChange }) {
 
 export default function SearchPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
-  const [view, setView] = useState('split')
+  const [view, setView] = useState(() => {
+    const v = searchParams.get('view')
+    return ['split', 'list', 'map'].includes(v) ? v : 'split'
+  })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
   const [sort, setSort] = useState('default')
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState(() => ({
     listingType: 'sale', priceMin: 0, priceMax: 2500000,
-    bedrooms: 0, bathrooms: 0, type: '', neighborhood: '', searchQuery: '',
-    scanOnly: false,
-  })
+    bedrooms: 0, bathrooms: 0, type: '', neighborhood: searchParams.get('neighborhood') || '',
+    searchQuery: searchParams.get('q') || '',
+    scanOnly: searchParams.get('scan') === '1',
+    source: searchParams.get('source') || '',
+  }))
+  const [sourceLabel] = useState(() => searchParams.get('sourceLabel') || '')
 
   const sortRef = useRef(null)
   const cardRefs = useRef({})        // { [listing.id]: DOM element }
@@ -94,6 +101,7 @@ export default function SearchPage() {
       if (filters.bedrooms && l.bedrooms < filters.bedrooms) return false
       if (filters.type && l.property_type !== filters.type) return false
       if (filters.neighborhood && l.neighborhood !== filters.neighborhood) return false
+      if (filters.source && l.source_id !== filters.source) return false
       if (filters.scanOnly && !hasActiveScan(l)) return false
       if (filters.searchQuery) {
         const q = filters.searchQuery.toLowerCase()
@@ -129,14 +137,22 @@ export default function SearchPage() {
   }, [])
 
   const activeFilterCount = [
-    filters.type, filters.neighborhood,
+    filters.type, filters.neighborhood, filters.source,
     filters.bedrooms > 0 && '1',
     filters.priceMin > 0 && '1',
     filters.priceMax < 2500000 && '1',
   ].filter(Boolean).length
 
+  const clearSourceFilter = useCallback(() => {
+    setFilters(f => ({ ...f, source: '' }))
+    const next = new URLSearchParams(searchParams)
+    next.delete('source')
+    next.delete('sourceLabel')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
+
   return (
-    <div style={{ paddingTop: '72px', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ paddingTop: '72px', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Toolbar ── */}
       <div style={{
@@ -229,8 +245,26 @@ export default function SearchPage() {
         </div>
       </div>
 
+      {/* ── Makelaar-filter banner ── */}
+      {filters.source && (
+        <div style={{
+          background: '#E6F2F4', borderBottom: '1px solid #CFE6E9',
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', flexShrink: 0,
+        }}>
+          <Storefront size={15} weight="fill" style={{ color: TEAL, flexShrink: 0 }} />
+          <span style={{ color: INK, fontSize: 13 }}>
+            Alle listings van <strong>{sourceLabel || filters.source}</strong>
+          </span>
+          <button onClick={clearSourceFilter}
+            style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, color: TEAL, fontSize: 12, fontWeight: 600 }}
+            className="hover:opacity-80 transition-opacity">
+            <X size={12} weight="bold" /> Filter wissen
+          </button>
+        </div>
+      )}
+
       {/* ── Main content ── */}
-      <div style={{ display: 'flex', height: 'calc(100dvh - 128px)', position: 'relative' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
 
         {/* Cards kolom */}
         {(view === 'split' || view === 'list') && (
