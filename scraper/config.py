@@ -122,6 +122,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "sunset_realtors": {
+        "id": "sunset_realtors",
+        "name": "Sunset Realtors",
+        "base_url": "https://sunset-realtors.com",
+        "listings_url": "https://sunset-realtors.com/property-sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
