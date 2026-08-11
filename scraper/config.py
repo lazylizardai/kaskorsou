@@ -282,6 +282,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "dmj_makelaar": {
+        "id": "dmj_makelaar",
+        "name": "DMJ Makelaar",
+        "base_url": "https://dmjmakelaar.com",
+        "listings_url": "https://dmjmakelaar.com/page-sitemap.xml",
+        "type": "traditional",
+        "priority": 9,
+    },
 }
 
 HEADERS = {
