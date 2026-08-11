@@ -35,9 +35,16 @@ class NewWindsRealtyScraper(BaseScraper):
             )
             try:
                 batch = r.json()
-            except Exception:
+            except Exception as e:
+                self.logger.warning(
+                    f"new_winds_realty: kon pagina {page} niet parsen "
+                    f"(status={r.status_code}, len={len(r.text)}, ct={r.headers.get('content-type')}): {e}"
+                )
+                self.logger.warning(f"new_winds_realty: body snippet: {r.text[:300]!r}")
                 break
             if not isinstance(batch, list) or not batch:
+                if isinstance(batch, dict):
+                    self.logger.warning(f"new_winds_realty: API-fout pagina {page}: {batch}")
                 break
             props.extend(batch)
             total_pages = int(r.headers.get("X-WP-TotalPages", 1) or 1)
