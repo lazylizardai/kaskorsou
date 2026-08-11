@@ -210,6 +210,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "bru_de_roque": {
+        "id": "bru_de_roque",
+        "name": "Bru de Roque",
+        "base_url": "https://bruderoque.com",
+        "listings_url": "https://bruderoque.com/wp-json/directorist/v2/listings",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {

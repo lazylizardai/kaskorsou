@@ -24,6 +24,7 @@ from .landmark import LandmarkScraper
 from .kostabon import KostabonScraper
 from .simmer import SimmerScraper
 from .top_makelaar import TopMakelaarScraper
+from .bru_de_roque import BruDeRoqueScraper
 
 __all__ = [
     "RemaxScraper",
@@ -52,4 +53,5 @@ __all__ = [
     "KostabonScraper",
     "SimmerScraper",
     "TopMakelaarScraper",
+    "BruDeRoqueScraper",
 ]
