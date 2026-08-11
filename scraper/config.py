@@ -146,6 +146,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "ambiente": {
+        "id": "ambiente",
+        "name": "Ambiente Real Estate",
+        "base_url": "https://ambienterealestate.com",
+        "listings_url": "https://ambienterealestate.com/properties-sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
