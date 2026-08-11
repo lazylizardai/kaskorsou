@@ -114,6 +114,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "sunlife": {
+        "id": "sunlife",
+        "name": "Sunlife Real Estate",
+        "base_url": "https://sunlife.realty",
+        "listings_url": "https://sunlife.realty/sitemap.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
