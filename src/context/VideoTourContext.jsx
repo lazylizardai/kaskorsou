@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Play } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'framer-motion'
 
@@ -17,6 +18,7 @@ export function VideoTourProvider({ children }) {
   return (
     <VideoTourContext.Provider value={{ openVideo, closeVideo }}>
       {children}
+      {createPortal(
       <AnimatePresence>
         {state && (
           <motion.div
@@ -24,8 +26,9 @@ export function VideoTourProvider({ children }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.92)',
+              position: 'fixed', inset: 0, zIndex: 2147483000, backgroundColor: 'rgba(0,0,0,0.92)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+              isolation: 'isolate',
             }}
             onClick={closeVideo}
           >
@@ -44,9 +47,9 @@ export function VideoTourProvider({ children }) {
               transition={{ duration: 0.18 }}
               onClick={(e) => e.stopPropagation()}
               style={{
-                position: 'relative', maxWidth: 420, width: '100%', maxHeight: '86vh',
+                position: 'relative', maxWidth: '90vw', maxHeight: '86vh',
                 borderRadius: 16, overflow: 'hidden', boxShadow: `0 0 0 1.5px ${CORAL}, 0 20px 60px rgba(0,0,0,0.5)`,
-                background: '#000',
+                background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
               <div style={{
@@ -59,18 +62,23 @@ export function VideoTourProvider({ children }) {
                 <Play size={11} weight="fill" style={{ color: CORAL }} />
                 Video Tour
               </div>
+              {/* width/height:auto ipv 100%/100%: de speler volgt nu de echte
+                  beeldverhouding van de video (9:16 vandaag, evt. 16:9 later)
+                  i.p.v. een vast vierkant-achtig kader op te dringen. */}
               <video
                 key={state.url}
                 src={state.url}
                 controls
                 autoPlay
                 playsInline
-                style={{ width: '100%', height: '100%', maxHeight: '86vh', display: 'block', background: '#000' }}
+                style={{ width: 'auto', height: 'auto', maxWidth: '90vw', maxHeight: '86vh', display: 'block', background: '#000' }}
               />
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </VideoTourContext.Provider>
   )
 }
