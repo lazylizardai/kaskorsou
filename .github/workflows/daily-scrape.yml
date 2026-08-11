@@ -43,7 +43,11 @@ jobs:
           # Facebook scraper requires Playwright + local cookies — runs via Windows Task Scheduler instead
           # sunbelt & era zijn offline (DNS dood). century21 zit achter AWS WAF:
           # levert ~72 listings via requests, daarna 403 (volledige set vereist een browser).
-          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,century21,new_winds_realty"
+          # new_winds_realty: code werkt (live geverifieerd, zie git-log), maar de site
+          # draait op WordPress.com/WPCloud (Automattic) dat GitHub Actions-IP's hard
+          # blokkeert (429 op elke request, ook na retry/backoff) — nog niet in de
+          # dagelijkse run tot dit vanaf een andere machine (bv. Mini PC) kan draaien.
+          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,century21"
           SOURCES_ARG=""
           DRY_RUN_ARG=""
           if [ -n "${{ github.event.inputs.sources }}" ]; then
