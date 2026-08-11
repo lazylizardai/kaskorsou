@@ -194,6 +194,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "simmer": {
+        "id": "simmer",
+        "name": "Simmer Real Estate",
+        "base_url": "https://simmerrealestate.com",
+        "listings_url": "https://simmerrealestate.com/wp-json/wp/v2/property",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
