@@ -15,6 +15,7 @@ from .nh_real_estate import NHRealEstateScraper
 from .sunlife import SunlifeScraper
 from .sunset_realtors import SunsetRealtorsScraper
 from .curacao_exclusive import CuracaoExclusiveScraper
+from .real_estate_agency_cb import RealEstateAgencyCBScraper
 
 __all__ = [
     "RemaxScraper",
@@ -34,4 +35,5 @@ __all__ = [
     "SunlifeScraper",
     "SunsetRealtorsScraper",
     "CuracaoExclusiveScraper",
+    "RealEstateAgencyCBScraper",
 ]

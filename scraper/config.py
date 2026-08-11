@@ -138,6 +138,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "real_estate_agency_cb": {
+        "id": "real_estate_agency_cb",
+        "name": "Real Estate Agency CB",
+        "base_url": "https://curacao-homes.com",
+        "listings_url": "https://curacao-homes.com/wp-json/wp/v2/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
