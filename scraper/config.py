@@ -170,6 +170,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "ruseler": {
+        "id": "ruseler",
+        "name": "Ruseler Makelaars",
+        "base_url": "https://ruselermakelaars.com",
+        "listings_url": "https://ruselermakelaars.com/wp-json/wp/v2/aanbod",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
