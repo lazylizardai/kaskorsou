@@ -98,6 +98,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "moret": {
+        "id": "moret",
+        "name": "Moret Real Estate",
+        "base_url": "https://moretrealestate.com",
+        "listings_url": "https://moretrealestate.com/kies/kopen/",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
