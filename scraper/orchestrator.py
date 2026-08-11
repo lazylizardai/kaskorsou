@@ -41,6 +41,7 @@ from .scrapers import (
     TopMakelaarScraper,
     BruDeRoqueScraper,
     DomicilieScraper,
+    PriceMatchScraper,
 )
 
 logging.basicConfig(
@@ -77,6 +78,7 @@ ALL_SCRAPERS = [
     TopMakelaarScraper,   # priority 8
     BruDeRoqueScraper,    # priority 8
     DomicilieScraper,     # priority 8
+    PriceMatchScraper,    # priority 8
     Century21Scraper,    # priority 8
     ERAScraper,          # priority 7
 ]

@@ -226,6 +226,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "pricematch": {
+        "id": "pricematch",
+        "name": "PriceMatch Real Estate",
+        "base_url": "https://pricematchrealestate.com",
+        "listings_url": "https://pricematchrealestate.com/wp-sitemap-posts-property-1.xml",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
