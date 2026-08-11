@@ -106,6 +106,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "nh_real_estate": {
+        "id": "nh_real_estate",
+        "name": "NH Real Estate & Associates",
+        "base_url": "https://curacao-houses.com",
+        "listings_url": "https://curacao-houses.com/wp-json/wp/v2/estate_property",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {
