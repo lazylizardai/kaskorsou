@@ -338,6 +338,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "proverties": {
+        "id": "proverties",
+        "name": "Proverties",
+        "base_url": "https://proverties.com",
+        "listings_url": "https://proverties.com/wp-json/wp/v2/listings",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
