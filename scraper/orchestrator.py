@@ -54,6 +54,7 @@ from .scrapers import (
     CaribbeanEvolutionRealtyScraper,
     VastivaScraper,
     CuracaoHousesScraper,
+    BconRealEstateScraper,
 )
 
 logging.basicConfig(
@@ -105,6 +106,7 @@ ALL_SCRAPERS = [
     CaribbeanEvolutionRealtyScraper,  # priority 8 (11 van de 59 listings actief)
     VastivaScraper,      # priority 6 (portaal met meerdere aanbieders, 22 Curaçao-listings)
     CuracaoHousesScraper,  # priority 6 (ERE-plugin, 5 van de 7 sitemap-URL's actief)
+    BconRealEstateScraper,  # priority 6 (Easy Real Estate-plugin, 20 van de 42 actief)
 ]
 
 

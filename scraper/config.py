@@ -330,6 +330,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "bcon_real_estate": {
+        "id": "bcon_real_estate",
+        "name": "B.CON Real Estate",
+        "base_url": "https://realestatebconcuracao.com",
+        "listings_url": "https://realestatebconcuracao.com/wp-json/wp/v2/properties",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
