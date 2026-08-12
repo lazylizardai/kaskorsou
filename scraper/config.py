@@ -354,6 +354,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "hd_azure_realty": {
+        "id": "hd_azure_realty",
+        "name": "HD Azure Realty",
+        "base_url": "https://hdazurerealty.com",
+        "listings_url": "https://hdazurerealty.com/wp-json/wp/v2/properties",
+        "type": "traditional",
+        "priority": 8,
+    },
 }
 
 HEADERS = {

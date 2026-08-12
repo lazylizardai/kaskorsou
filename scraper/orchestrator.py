@@ -57,6 +57,7 @@ from .scrapers import (
     BconRealEstateScraper,
     ProvertiesScraper,
     MamboDevelopersScraper,
+    HdAzureRealtyScraper,
 )
 
 logging.basicConfig(
@@ -111,6 +112,7 @@ ALL_SCRAPERS = [
     BconRealEstateScraper,  # priority 6 (Easy Real Estate-plugin, 20 van de 42 actief)
     ProvertiesScraper,      # priority 6 (JetEngine, 15 van de 43 actief, 28 short-term uitgesloten)
     MamboDevelopersScraper,  # priority 6 (Wix resales-sectie, 5 unieke listings)
+    HdAzureRealtyScraper,  # priority 8 (Houzez REST, 20 van de 34 listings actief)
 ]
 
 
