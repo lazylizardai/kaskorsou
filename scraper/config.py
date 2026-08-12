@@ -314,6 +314,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "vastiva": {
+        "id": "vastiva",
+        "name": "Vastiva",
+        "base_url": "https://www.vastiva.nl",
+        "listings_url": "https://www.vastiva.nl/sitemap-aanbod.xml",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
