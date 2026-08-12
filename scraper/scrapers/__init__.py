@@ -41,6 +41,7 @@ from .vastiva import VastivaScraper
 from .curacao_houses import CuracaoHousesScraper
 from .bcon_real_estate import BconRealEstateScraper
 from .proverties import ProvertiesScraper
+from .mambo_developers import MamboDevelopersScraper
 
 __all__ = [
     "RemaxScraper",
@@ -86,4 +87,5 @@ __all__ = [
     "CuracaoHousesScraper",
     "BconRealEstateScraper",
     "ProvertiesScraper",
+    "MamboDevelopersScraper",
 ]

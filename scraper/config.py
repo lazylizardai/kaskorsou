@@ -346,6 +346,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "mambo_developers": {
+        "id": "mambo_developers",
+        "name": "Mambo Developers",
+        "base_url": "https://www.mambodevelopers.com",
+        "listings_url": "https://www.mambodevelopers.com/sitemap.xml",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
