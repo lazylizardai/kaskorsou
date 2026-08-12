@@ -53,6 +53,7 @@ from .scrapers import (
     SalasRealEstateScraper,
     CaribbeanEvolutionRealtyScraper,
     VastivaScraper,
+    CuracaoHousesScraper,
 )
 
 logging.basicConfig(
@@ -103,6 +104,7 @@ ALL_SCRAPERS = [
     SalasRealEstateScraper,  # priority 6 (kleine site, 3 van de 6 listings actief)
     CaribbeanEvolutionRealtyScraper,  # priority 8 (11 van de 59 listings actief)
     VastivaScraper,      # priority 6 (portaal met meerdere aanbieders, 22 Curaçao-listings)
+    CuracaoHousesScraper,  # priority 6 (ERE-plugin, 5 van de 7 sitemap-URL's actief)
 ]
 
 

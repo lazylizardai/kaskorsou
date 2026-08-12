@@ -38,6 +38,7 @@ from .wigbold import WigboldScraper
 from .salas_real_estate import SalasRealEstateScraper
 from .caribbean_evolution_realty import CaribbeanEvolutionRealtyScraper
 from .vastiva import VastivaScraper
+from .curacao_houses import CuracaoHousesScraper
 
 __all__ = [
     "RemaxScraper",
@@ -80,4 +81,5 @@ __all__ = [
     "SalasRealEstateScraper",
     "CaribbeanEvolutionRealtyScraper",
     "VastivaScraper",
+    "CuracaoHousesScraper",
 ]

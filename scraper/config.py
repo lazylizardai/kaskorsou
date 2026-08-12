@@ -322,6 +322,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "curacao_houses": {
+        "id": "curacao_houses",
+        "name": "Curaçao Houses",
+        "base_url": "https://www.curacaohouses.com",
+        "listings_url": "https://www.curacaohouses.com/property-sitemap.xml",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
