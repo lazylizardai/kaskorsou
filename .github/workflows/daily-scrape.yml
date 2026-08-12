@@ -19,7 +19,7 @@ jobs:
   scrape:
     name: Scrape & Upload
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 240
 
     steps:
       - name: Checkout
@@ -47,7 +47,12 @@ jobs:
           # draait op WordPress.com/WPCloud (Automattic) dat GitHub Actions-IP's hard
           # blokkeert (429 op elke request, ook na retry/backoff) — nog niet in de
           # dagelijkse run tot dit vanaf een andere machine (bv. Mini PC) kan draaien.
-          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,century21,keller_williams,curahousecare,international_fine_living,moret,nh_real_estate,sunlife,sunset_realtors,curacao_exclusive,real_estate_agency_cb,ambiente,palmstone,real_estate_caribe,ruseler,landmark,kostabon,simmer,top_makelaar,bru_de_roque,domicilie,pricematch,curacao_homes,curacao_real_estate_solution,gs_realestate,martis_partners,cur_estates,novo_casa_realty,dmj_makelaar,wigbold,salas_real_estate,caribbean_evolution_realty,vastiva,curacao_houses,bcon_real_estate,proverties,mambo_developers,hd_azure_realty"
+          # century21 staat bewust ACHTERAAN: elke geblokkeerde detailpagina kost door
+          # retry/backoff ~30-40s, en op 12 aug 2026 stond century21 nog op plek 5 en
+          # at het de volle 150-min-timeout op — alle 36 nieuwe makelaar-scrapers erna
+          # draaiden die dag daardoor NUL keer. Nu achteraan + timeout omhoog naar 240
+          # min, zodat een timeout op century21 alleen century21 raakt.
+          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,keller_williams,curahousecare,international_fine_living,moret,nh_real_estate,sunlife,sunset_realtors,curacao_exclusive,real_estate_agency_cb,ambiente,palmstone,real_estate_caribe,ruseler,landmark,kostabon,simmer,top_makelaar,bru_de_roque,domicilie,pricematch,curacao_homes,curacao_real_estate_solution,gs_realestate,martis_partners,cur_estates,novo_casa_realty,dmj_makelaar,wigbold,salas_real_estate,caribbean_evolution_realty,vastiva,curacao_houses,bcon_real_estate,proverties,mambo_developers,hd_azure_realty,century21"
           SOURCES_ARG=""
           DRY_RUN_ARG=""
           if [ -n "${{ github.event.inputs.sources }}" ]; then
@@ -60,13 +65,13 @@ jobs:
           fi
           python -m scraper.orchestrator $SOURCES_ARG $DRY_RUN_ARG --dedup
 
-      - name: Notify Slack on failure
-        if: failure()
+      - name: Notify Slack on failure or timeout
+        if: failure() || cancelled()
         uses: slackapi/slack-github-action@v2
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK }}
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "❌ *KasKorsou scraper failed!*\nRun: ${{ github.run_id }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
+              "text": "❌ *KasKorsou scraper failed of timede out!*\nRun: ${{ github.run_id }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
             }
