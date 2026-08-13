@@ -44,6 +44,7 @@ from .proverties import ProvertiesScraper
 from .mambo_developers import MamboDevelopersScraper
 from .hd_azure_realty import HdAzureRealtyScraper
 from .burbach_roycroft import BurbachRoycroftScraper
+from .kings_view_residences import KingsViewResidencesScraper
 
 __all__ = [
     "RemaxScraper",
@@ -92,4 +93,5 @@ __all__ = [
     "MamboDevelopersScraper",
     "HdAzureRealtyScraper",
     "BurbachRoycroftScraper",
+    "KingsViewResidencesScraper",
 ]

@@ -370,6 +370,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "kings_view_residences": {
+        "id": "kings_view_residences",
+        "name": "Kings View Residences",
+        "base_url": "https://kingsviewresidences.com",
+        "listings_url": "https://kingsviewresidences.com/aankopen",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
