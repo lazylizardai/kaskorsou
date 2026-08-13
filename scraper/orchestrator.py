@@ -58,6 +58,7 @@ from .scrapers import (
     ProvertiesScraper,
     MamboDevelopersScraper,
     HdAzureRealtyScraper,
+    BurbachRoycroftScraper,
 )
 
 logging.basicConfig(
@@ -113,6 +114,7 @@ ALL_SCRAPERS = [
     ProvertiesScraper,      # priority 6 (JetEngine, 15 van de 43 actief, 28 short-term uitgesloten)
     MamboDevelopersScraper,  # priority 6 (Wix resales-sectie, 5 unieke listings)
     HdAzureRealtyScraper,  # priority 8 (Houzez REST, 20 van de 34 listings actief)
+    BurbachRoycroftScraper,  # priority 6 (gedeelde NL+CW sitemap, ~22 van de 55 listings Curaçao)
 ]
 
 

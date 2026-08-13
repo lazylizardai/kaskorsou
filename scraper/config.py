@@ -362,6 +362,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 8,
     },
+    "burbach_roycroft": {
+        "id": "burbach_roycroft",
+        "name": "Burbach Roycroft",
+        "base_url": "https://www.burbachroycroft.com",
+        "listings_url": "https://www.burbachroycroft.com/woningen-sitemap.xml",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
