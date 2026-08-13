@@ -17,10 +17,10 @@ const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
 // Gecontroleerd/gecorrigeerd 13 aug tegen OSM place-nodes (Overpass) + Nominatim
 // — een flink deel van de oorspronkelijke schattingen bleek 3-14 km mis te
 // zitten, wat precies verklaart waarom er clusters listings in zee/verkeerd
-// terechtkwamen. Enkele namen zijn bewust NIET aangepast ondanks een
+// terechtkwamen. Enkele namen zijn eerder bewust NIET aangepast ondanks een
 // afwijkende Nominatim-treffer, omdat die trof een ander object met dezelfde
 // naam (bv. "Rif" → Riffort-ruïne, "Piscadera" → een verweg gelegen baai,
-// "Sabana" → een piek) — daar is de oude schatting aannemelijker.
+// "Sabana" → een piek).
 // 13 aug (2e ronde): "blue bay" bleek TOCH fout — Peter zag een cluster
 // listings (century21 + sunset_realtors, neighborhood="Blue Bay") in open
 // zee. De oude waarde (12.1047,-69.0214) reverse-geocodet naar NIETS
@@ -30,12 +30,28 @@ const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
 // listings zijn van gevestigde makelaars (century21/sunset_realtors) die
 // vrijwel zeker de resort-community bedoelen, niet een gelijknamig
 // strandje elders — gecorrigeerd naar de resort-locatie.
+// 13 aug (3e ronde): de zee-plaatsingen zijn opgelost, maar de 3 destijds
+// "bewust ongewijzigd" gelaten entries zijn alsnog uitgezocht, dieper dan de
+// eerdere "trof een ander object"-conclusie:
+// - "rif" bleek in de praktijk altijd "Rif St. Marie" te zijn (7 remax-
+//   listings, geen eigen coördinaten) — een echte plek bij Jan Kok/Sint
+//   Willibrordus, west-Curaçao, ~9-10 km van de oude schatting. Nominatim-
+//   wegtreffers (Kaminda San Willibrordus) bevestigen de nieuwe locatie.
+// - "piscadera" had de oude schatting ~2 km naast waar de echte Piscadera-
+//   listings zitten: 11 van de 16 met eigen coördinaten clusteren rond
+//   Royal Palm Resort / La Vista / The View (Piscadera Harbour Village).
+//   Nieuwe waarde = gemiddelde van dat cluster, reverse-geocodet naar
+//   "Royal Palm Resort, Zakitó, Wanapa".
+// - "sabana" wordt momenteel door geen enkele listing gebruikt (0 treffers
+//   in de live data), maar voor de zekerheid toch gecorrigeerd naar het
+//   dichtstbijzijnde OSM-neighbourhood-object "Sabana Hundu" i.p.v. de
+//   oude ballpark-schatting.
 const NB = {
   'jan thiel':      [12.0852, -68.8766],
   'blue bay':       [12.1364, -68.9855],
   'pietermaai':     [12.1001, -68.9228],
   'coral estate':   [12.2028, -69.0784],
-  'piscadera':      [12.1297, -68.9808],
+  'piscadera':      [12.1184, -68.9625],
   'willemstad':     [12.1084, -68.9322],
   'otrobanda':      [12.1076, -68.9369],
   'punda':          [12.1059, -68.9289],
@@ -46,13 +62,13 @@ const NB = {
   'jan sofat':      [12.0878, -68.8516],
   'barber':         [12.2791, -69.0789],
   'emmastad':       [12.1366, -68.9114],
-  'sabana':         [12.1200, -68.9400],
+  'sabana':         [12.1602, -68.9134],
   'westpunt':       [12.3717, -69.1533],
   'lagun':          [12.3317, -69.1297],
   'mahuma':         [12.1673, -68.9543],
   'bapor kibra':    [12.0850, -68.9050],
   'soto':           [12.2790, -69.1101],
-  'rif':            [12.1200, -68.9650],
+  'rif':            [12.2149, -69.0586],
   'mundo nobo':     [12.1150, -68.9450],
   'brievengat':     [12.1350, -68.9150],
   'scharloo':       [12.1020, -68.9200],
