@@ -20,12 +20,22 @@ const slideUp = (delay = 0) => ({
   transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
+// Introductietarieven (13 aug 2026) — bewust fors verlaagd t.o.v. de vorige
+// prijzen (wasPrice). Nul betalende makelaars tot nu toe, geen testimonials,
+// geen lokale referentie voor "wat een 3D-tour hoort te kosten" — de oude
+// prijzen (999/1.999/299/4.999) waren instapdrempels zonder enig bewijs dat
+// de markt ze accepteert. Dit zijn dus geen harde kostprijs-berekeningen,
+// maar een aanname om de eerste klanten binnen te krijgen. wasPrice blijft
+// zichtbaar (doorgestreept) zodat het als tijdelijke launch-korting oogt,
+// niet als permanente prijsverlaging — makelaars die nu instappen voelen
+// urgentie, en de prijs kan later omhoog zonder bestaande klanten te raken.
 const TIERS = [
   {
     id: 'single',
     name: 'Single Scan',
     icon: Camera,
-    price: 'XCG 999',
+    wasPrice: 'XCG 999',
+    price: 'XCG 499',
     suffix: 'eenmalig',
     blurb: 'Eén woning. Eén scan. Eén jaar hosting inclusief.',
     features: [
@@ -43,7 +53,8 @@ const TIERS = [
     id: 'pro',
     name: 'Makelaar Pro',
     icon: ChartLineUp,
-    price: 'XCG 1.999',
+    wasPrice: 'XCG 1.999',
+    price: 'XCG 899',
     suffix: 'per maand',
     blurb: 'Voor kantoren met 5+ listings die structureel willen opvallen.',
     features: [
@@ -62,7 +73,8 @@ const TIERS = [
     id: 'diy',
     name: 'Airbnb DIY',
     icon: House,
-    price: 'XCG 299',
+    wasPrice: 'XCG 299',
+    price: 'XCG 149',
     suffix: 'per scan',
     blurb: 'Voor hosts: jij filmt zelf, wij processen + hosten.',
     features: [
@@ -70,7 +82,7 @@ const TIERS = [
       'Wij verwerken jouw video tot 3D-tour',
       '6 maanden hosting',
       'Embed-link voor Airbnb / Booking.com',
-      'Optie: upgrade naar pro-scan voor XCG 599',
+      'Optie: upgrade naar pro-scan voor XCG 299',
     ],
     cta: 'Start DIY scan',
     badge: null,
@@ -80,7 +92,8 @@ const TIERS = [
     id: 'resort',
     name: 'Resort Retainer',
     icon: Crown,
-    price: 'Vanaf XCG 4.999',
+    wasPrice: 'Vanaf XCG 4.999',
+    price: 'Vanaf XCG 2.999',
     suffix: 'per maand',
     blurb: 'Maandelijkse scan tijdens nieuwbouw — voor investor decks en pre-sales.',
     features: [
@@ -140,7 +153,7 @@ const FAQS = [
   },
   {
     q: 'Kan ik dit zelf?',
-    a: 'Ja, met onze DIY-tier voor XCG 299 begeleiden we je om zelf te filmen. Maar voor de meeste makelaars is service-tier lonender — onze kwaliteit ligt structureel hoger, en de tijd die jij niet kwijt bent aan capture/processing besteedt aan klanten zelf.',
+    a: 'Ja, met onze DIY-tier voor XCG 149 begeleiden we je om zelf te filmen. Maar voor de meeste makelaars is service-tier lonender — onze kwaliteit ligt structureel hoger, en de tijd die jij niet kwijt bent aan capture/processing besteedt aan klanten zelf.',
   },
 ]
 
@@ -230,10 +243,22 @@ function TierCard({ tier, idx }) {
       <p style={{ fontSize: 13, color: isPro ? 'rgba(255,255,255,0.6)' : '#71717A', marginBottom: 18, lineHeight: 1.4 }}>
         {tier.blurb}
       </p>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 22 }}>
+      {tier.wasPrice && (
+        <span style={{
+          display: 'inline-block', fontSize: 12, fontWeight: 600, marginBottom: 4,
+          color: isPro ? 'rgba(255,255,255,0.4)' : '#A1A1AA', textDecoration: 'line-through',
+        }}>{tier.wasPrice}</span>
+      )}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: tier.wasPrice ? 8 : 22 }}>
         <span style={{ fontWeight: 800, fontSize: 28, letterSpacing: '-0.03em' }}>{tier.price}</span>
         <span style={{ fontSize: 13, color: isPro ? 'rgba(255,255,255,0.55)' : '#71717A' }}>{tier.suffix}</span>
       </div>
+      {tier.wasPrice && (
+        <span style={{
+          display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+          color: tier.color, marginBottom: 22, textTransform: 'uppercase',
+        }}>Introductieprijs</span>
+      )}
       <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22, flex: 1 }}>
         {tier.features.map(f => (
           <li key={f} style={{ display: 'flex', gap: 9, fontSize: 14, lineHeight: 1.45 }}>
@@ -466,7 +491,8 @@ export default function MakelaarsPage() {
           </div>
 
           <motion.p {...slideUp(0.2)} style={{ color: '#71717A', textAlign: 'center', marginTop: 32, fontSize: 13 }}>
-            Alle prijzen in XCG (Caribbean Guilder) excl. OB. Geen setupkosten, maandelijks opzegbaar.
+            Alle prijzen in XCG (Caribbean Guilder) excl. OB. Geen setupkosten, maandelijks opzegbaar.<br />
+            Introductieprijzen voor de eerste makelaars op Curaçao — geldig zolang we nog geen vaste klantenbasis hebben opgebouwd.
           </motion.p>
         </div>
       </section>

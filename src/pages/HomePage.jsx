@@ -58,6 +58,33 @@ const slideUp = (delay = 0) => ({
   transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
+// ─── "Uitgelicht" rotatie ────────────────────────────────────────────────
+// Doel: de 4 uitgelichte woningen op de homepage staan niet permanent vast
+// (was: altijd de 4 duurste), maar wisselen 1x per dag uit een pool van
+// topkwaliteit-listings. Stabiel binnen dezelfde dag (geen flikkeren bij
+// een refresh), wisselt de volgende dag automatisch door.
+// `is_featured` (kas_active_listings) krijgt hierbij altijd voorrang en
+// wordt NOOIT uitgeroteerd — dat is het veld waarmee een makelaar later
+// een gegarandeerde uitgelichte plek kan claimen/kopen (verdienmodel-optie,
+// zie kaskorsou-status.md "Openstaand"). Vandaag staat dat veld nog bij
+// niemand op true, dus in de praktijk roteert nu de volledige sectie.
+function seededShuffle(arr, seed) {
+  const out = [...arr]
+  let s = seed % 2147483647
+  if (s <= 0) s += 2147483646
+  for (let i = out.length - 1; i > 0; i--) {
+    s = (s * 48271) % 2147483647
+    const j = Math.floor((s / 2147483647) * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+function dailySeed() {
+  const d = new Date()
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+}
+
 
 
 const NEIGHBORHOODS = [
@@ -91,15 +118,25 @@ export default function HomePage() {
       const notLand = (l) =>
         !landKeywords.some(k => l.title?.toLowerCase().includes(k)) &&
         !landKeywords.includes(l.property_type?.toLowerCase())
-      const top = [...data.filter(l => l.images?.length > 0 && l.price > 0 && notLand(l))]
-        .sort((a, b) => (b.price || 0) - (a.price || 0))
-        .slice(0, 4)
+      const eligible = data.filter(l => l.images?.length > 0 && l.price > 0 && notLand(l))
+
+      // Betaald/handmatig uitgelicht (toekomstig verdienmodel) — altijd tonen, nooit roteren.
+      const pinned = eligible.filter(l => l.is_featured).slice(0, 4)
+      const slotsLeft = 4 - pinned.length
+
+      // Rotatiepool: top ~16 op kwaliteit/prijs, dagelijks anders geshuffeld.
+      const pool = eligible
+        .filter(l => !pinned.find(p => p.id === l.id))
+        .sort((a, b) => (b.quality_score || 0) - (a.quality_score || 0) || (b.price || 0) - (a.price || 0))
+        .slice(0, 16)
+      const rotated = seededShuffle(pool, dailySeed()).slice(0, slotsLeft)
+
+      let top = [...pinned, ...rotated]
       if (top.length < 4) {
         const fill = data.filter(l => !top.find(t => t.id === l.id)).slice(0, 4 - top.length)
-        setFeatured([...top, ...fill])
-      } else {
-        setFeatured(top)
+        top = [...top, ...fill]
       }
+      setFeatured(top)
     }).catch(() => {})
 
     getListings({}).then(data => {
