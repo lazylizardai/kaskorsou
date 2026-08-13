@@ -52,7 +52,7 @@ jobs:
           # at het de volle 150-min-timeout op — alle 36 nieuwe makelaar-scrapers erna
           # draaiden die dag daardoor NUL keer. Nu achteraan + timeout omhoog naar 240
           # min, zodat een timeout op century21 alleen century21 raakt.
-          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,keller_williams,curahousecare,international_fine_living,moret,nh_real_estate,sunlife,sunset_realtors,curacao_exclusive,real_estate_agency_cb,ambiente,palmstone,real_estate_caribe,ruseler,landmark,kostabon,simmer,top_makelaar,bru_de_roque,domicilie,pricematch,curacao_homes,curacao_real_estate_solution,gs_realestate,martis_partners,cur_estates,novo_casa_realty,dmj_makelaar,wigbold,salas_real_estate,caribbean_evolution_realty,vastiva,curacao_houses,bcon_real_estate,proverties,mambo_developers,hd_azure_realty,burbach_roycroft,kings_view_residences,century21"
+          DEFAULT_SOURCES="remax,athome,caresto,livinggoed,keller_williams,curahousecare,international_fine_living,moret,nh_real_estate,sunlife,sunset_realtors,curacao_exclusive,real_estate_agency_cb,ambiente,palmstone,real_estate_caribe,ruseler,landmark,kostabon,simmer,top_makelaar,bru_de_roque,domicilie,pricematch,curacao_homes,curacao_real_estate_solution,gs_realestate,martis_partners,cur_estates,novo_casa_realty,dmj_makelaar,wigbold,salas_real_estate,caribbean_evolution_realty,vastiva,curacao_houses,bcon_real_estate,proverties,mambo_developers,hd_azure_realty,burbach_roycroft,kings_view_residences,blue_bay_hills_residences,century21"
           SOURCES_ARG=""
           DRY_RUN_ARG=""
           if [ -n "${{ github.event.inputs.sources }}" ]; then
