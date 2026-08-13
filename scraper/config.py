@@ -386,6 +386,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "baia_vista": {
+        "id": "baia_vista",
+        "name": "Baia Vista",
+        "base_url": "https://baiavista.com",
+        "listings_url": "https://baiavista.com/home-sitemap.xml",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {

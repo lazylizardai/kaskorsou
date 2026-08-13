@@ -61,6 +61,7 @@ from .scrapers import (
     BurbachRoycroftScraper,
     KingsViewResidencesScraper,
     BlueBayHillsResidencesScraper,
+    BaiaVistaScraper,
 )
 
 logging.basicConfig(
@@ -119,6 +120,7 @@ ALL_SCRAPERS = [
     BurbachRoycroftScraper,  # priority 6 (gedeelde NL+CW sitemap, ~22 van de 55 listings Curaçao)
     KingsViewResidencesScraper,  # priority 6 (nieuwbouwproject, 29 van de 64 units "available")
     BlueBayHillsResidencesScraper,  # priority 6 (nieuwbouwproject, 9 van de 24 units "beschikbaar")
+    BaiaVistaScraper,  # priority 6 (nieuwbouwproject, 25 van de 100 units "Beschikbaar")
 ]
 
 

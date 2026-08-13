@@ -46,6 +46,7 @@ from .hd_azure_realty import HdAzureRealtyScraper
 from .burbach_roycroft import BurbachRoycroftScraper
 from .kings_view_residences import KingsViewResidencesScraper
 from .blue_bay_hills_residences import BlueBayHillsResidencesScraper
+from .baia_vista import BaiaVistaScraper
 
 __all__ = [
     "RemaxScraper",
@@ -96,4 +97,5 @@ __all__ = [
     "BurbachRoycroftScraper",
     "KingsViewResidencesScraper",
     "BlueBayHillsResidencesScraper",
+    "BaiaVistaScraper",
 ]
