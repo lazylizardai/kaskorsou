@@ -60,6 +60,7 @@ from .scrapers import (
     HdAzureRealtyScraper,
     BurbachRoycroftScraper,
     KingsViewResidencesScraper,
+    BlueBayHillsResidencesScraper,
 )
 
 logging.basicConfig(
@@ -117,6 +118,7 @@ ALL_SCRAPERS = [
     HdAzureRealtyScraper,  # priority 8 (Houzez REST, 20 van de 34 listings actief)
     BurbachRoycroftScraper,  # priority 6 (gedeelde NL+CW sitemap, ~22 van de 55 listings Curaçao)
     KingsViewResidencesScraper,  # priority 6 (nieuwbouwproject, 29 van de 64 units "available")
+    BlueBayHillsResidencesScraper,  # priority 6 (nieuwbouwproject, 9 van de 24 units "beschikbaar")
 ]
 
 

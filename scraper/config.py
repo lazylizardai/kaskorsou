@@ -378,6 +378,14 @@ SOURCES = {
         "type": "traditional",
         "priority": 6,
     },
+    "blue_bay_hills_residences": {
+        "id": "blue_bay_hills_residences",
+        "name": "Blue Bay Hills Residences",
+        "base_url": "https://www.bluebayhillsresidences.com",
+        "listings_url": "https://www.bluebayhillsresidences.com/nl/appartementen/",
+        "type": "traditional",
+        "priority": 6,
+    },
 }
 
 HEADERS = {
