@@ -20,11 +20,19 @@ const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
 // terechtkwamen. Enkele namen zijn bewust NIET aangepast ondanks een
 // afwijkende Nominatim-treffer, omdat die trof een ander object met dezelfde
 // naam (bv. "Rif" → Riffort-ruïne, "Piscadera" → een verweg gelegen baai,
-// "Sabana" → een piek, "Blue Bay" → mogelijk de golfresort i.p.v. Blue Bay
-// Beach Villas bij St. Michiel) — daar is de oude schatting aannemelijker.
+// "Sabana" → een piek) — daar is de oude schatting aannemelijker.
+// 13 aug (2e ronde): "blue bay" bleek TOCH fout — Peter zag een cluster
+// listings (century21 + sunset_realtors, neighborhood="Blue Bay") in open
+// zee. De oude waarde (12.1047,-69.0214) reverse-geocodet naar NIETS
+// (alleen "Curaçao, Nederland" als kaal land-resultaat — een sterk signaal
+// voor "in zee"), terwijl de golfresort-coördinaat wél een echte straat in
+// de Blue Bay Golf & Beach Resort-wijk oplevert ("Section D, Blauw"). De
+// listings zijn van gevestigde makelaars (century21/sunset_realtors) die
+// vrijwel zeker de resort-community bedoelen, niet een gelijknamig
+// strandje elders — gecorrigeerd naar de resort-locatie.
 const NB = {
   'jan thiel':      [12.0852, -68.8766],
-  'blue bay':       [12.1047, -69.0214],
+  'blue bay':       [12.1364, -68.9855],
   'pietermaai':     [12.1001, -68.9228],
   'coral estate':   [12.2028, -69.0784],
   'piscadera':      [12.1297, -68.9808],
