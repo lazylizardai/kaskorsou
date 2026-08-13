@@ -343,13 +343,13 @@ export default function SearchPage() {
 
       {/* ── Mobile floating map/list toggle ── */}
       <motion.button
-        className="md:hidden fixed z-[1000]"
+        className="flex md:hidden fixed z-[1000]"
         style={{
           bottom: 24, left: '50%', transform: 'translateX(-50%)',
           background: INK, color: 'white',
           padding: '12px 28px', borderRadius: 999,
           boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
-          display: 'flex', alignItems: 'center', gap: 8,
+          alignItems: 'center', gap: 8,
           fontSize: 14, fontWeight: 600,
         }}
         whileTap={{ scale: 0.94 }}

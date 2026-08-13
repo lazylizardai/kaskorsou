@@ -319,7 +319,7 @@ export default function DetailPage() {
           : <Gallery images={listing.images} />}
 
         {/* Content grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 48, marginTop: 40, alignItems: 'start' }}
+        <div style={{ gridTemplateColumns: '1fr 360px', gap: 48, marginTop: 40, alignItems: 'start' }}
           className="block lg:grid">
 
           {/* Left */}

@@ -340,7 +340,7 @@ export default function HomePage() {
           </div>
           {/* Bento grid: tall left + 3 stacked right */}
           {featured.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', gap: 10, height: 620 }}
+            <div style={{ gridTemplateColumns: '1.6fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', gap: 10, height: 620 }}
               className="hidden md:grid">
               {featured[0] && (
                 <motion.div {...slideUp(0)} style={{ gridRow: '1 / 4', gridColumn: '1' }}>
@@ -364,7 +364,7 @@ export default function HomePage() {
               )}
             </div>
           ) : (
-            <div style={{ height: 620, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            <div style={{ height: 620, alignItems: 'center', justifyContent: 'center' }}
               className="hidden md:flex">
               <p style={{ color: 'rgba(255,255,255,0.3)' }}>Woningen laden…</p>
             </div>
