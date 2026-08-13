@@ -53,7 +53,6 @@ export default function SearchPage() {
   const isMobile = useIsMobile()
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
   const [view, setView] = useState(() => {
     const v = searchParams.get('view')
@@ -138,15 +137,12 @@ export default function SearchPage() {
     return result
   }, [listings, filters, sort])
 
-  // Marker click → selecteer listing + scroll kaart naar boven op mobiel
+  // "Bekijk details →" in de kaart-popup → naar de listingpagina navigeren.
+  // Was eerder alleen een lijst-selectie zonder navigatie, waardoor de knop
+  // niets leek te doen.
   const handleMarkerClick = useCallback((listing) => {
-    setSelectedId(listing.id)
-    // Scroll card zichtbaar in de lijst
-    const el = cardRefs.current[listing.id]
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    // Op mobiel: switch naar lijst zodat card zichtbaar is
-    if (window.innerWidth < 768) setView('list')
-  }, [])
+    navigate(`/listing/${listing.id}`)
+  }, [navigate])
 
   const activeFilterCount = [
     filters.type, filters.neighborhood, filters.source,
@@ -319,7 +315,7 @@ export default function SearchPage() {
                       onMouseLeave={() => setHoveredId(null)}>
                       <ListingCard
                         listing={listing}
-                        highlighted={hoveredId === listing.id || selectedId === listing.id}
+                        highlighted={hoveredId === listing.id}
                       />
                     </div>
                   ))
@@ -334,7 +330,7 @@ export default function SearchPage() {
             <MapView
               key={view}
               listings={filtered}
-              selectedId={hoveredId || selectedId}
+              selectedId={hoveredId}
               onMarkerClick={handleMarkerClick}
             />
           </div>

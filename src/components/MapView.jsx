@@ -11,62 +11,118 @@ import { formatPrice } from '../lib/currency'
 const CURACAO_CENTER = [12.1696, -68.9900]
 const CURACAO_BOUNDS = [[11.90, -69.30], [12.50, -68.60]]
 
+// Buurt-centra voor de fallback-plaatsing wanneer een listing geen (bruikbare)
+// eigen coördinaten heeft — geldt voor de MEERDERHEID van de listings (geen
+// lat/lng gescraped), dus fouten hier raken heel veel pins tegelijk.
+// Gecontroleerd/gecorrigeerd 13 aug tegen OSM place-nodes (Overpass) + Nominatim
+// — een flink deel van de oorspronkelijke schattingen bleek 3-14 km mis te
+// zitten, wat precies verklaart waarom er clusters listings in zee/verkeerd
+// terechtkwamen. Enkele namen zijn bewust NIET aangepast ondanks een
+// afwijkende Nominatim-treffer, omdat die trof een ander object met dezelfde
+// naam (bv. "Rif" → Riffort-ruïne, "Piscadera" → een verweg gelegen baai,
+// "Sabana" → een piek, "Blue Bay" → mogelijk de golfresort i.p.v. Blue Bay
+// Beach Villas bij St. Michiel) — daar is de oude schatting aannemelijker.
 const NB = {
-  'jan thiel':      [12.0556, -68.8637],
+  'jan thiel':      [12.0852, -68.8766],
   'blue bay':       [12.1047, -69.0214],
   'pietermaai':     [12.1001, -68.9228],
-  'coral estate':   [12.1500, -69.0500],
+  'coral estate':   [12.2028, -69.0784],
   'piscadera':      [12.1297, -68.9808],
   'willemstad':     [12.1084, -68.9322],
   'otrobanda':      [12.1076, -68.9369],
   'punda':          [12.1059, -68.9289],
-  'seru fortuna':   [12.1200, -68.9500],
-  'salina':         [12.0919, -68.8928],
-  'saliña':         [12.0919, -68.8928],
+  'seru fortuna':   [12.1757, -68.9274],
+  'salina':         [12.1064, -68.9036],
+  'saliña':         [12.1064, -68.9036],
   'julianadorp':    [12.1625, -68.9672],
-  'jan sofat':      [12.0856, -68.9100],
-  'barber':         [12.1800, -69.0500],
-  'emmastad':       [12.1100, -68.9200],
+  'jan sofat':      [12.0878, -68.8516],
+  'barber':         [12.2791, -69.0789],
+  'emmastad':       [12.1366, -68.9114],
   'sabana':         [12.1200, -68.9400],
   'westpunt':       [12.3717, -69.1533],
   'lagun':          [12.3317, -69.1297],
-  'mahuma':         [12.1400, -68.9600],
+  'mahuma':         [12.1673, -68.9543],
   'bapor kibra':    [12.0850, -68.9050],
-  'soto':           [12.2600, -69.0800],
+  'soto':           [12.2790, -69.1101],
   'rif':            [12.1200, -68.9650],
   'mundo nobo':     [12.1150, -68.9450],
   'brievengat':     [12.1350, -68.9150],
   'scharloo':       [12.1020, -68.9200],
-  'groot kwartier': [12.1600, -68.9550],
-  'sta catarina':   [12.1750, -68.9700],
-  'sta maria':      [12.2300, -69.0300],
-  'buena vista':    [12.0900, -68.8800],
-  'parasasa':       [12.1600, -69.0100],
-  'sun valley':     [12.0820, -68.8900],
-  'suffisant':      [12.1050, -68.9250],
+  'groot kwartier': [12.1410, -68.9097],
+  'sta catarina':   [12.1421, -68.8345],
+  'santa catharina':[12.1421, -68.8345],
+  'sint joris':     [12.1421, -68.8345],
+  'st. joris':      [12.1421, -68.8345],
+  'sta maria':      [12.1580, -68.9433],
+  'buena vista':    [12.1442, -68.9344],
+  'parasasa':       [12.1213, -68.9662],
+  'sun valley':     [12.1569, -68.9089],
+  'suffisant':      [12.1532, -68.9259],
   'vredenberg':     [12.1180, -68.9480],
-  'rooi catootje':  [12.0700, -68.8600],
-  'boca gentil':    [12.0600, -68.8500],
-  'santa rosa':     [12.1750, -68.9550],
-  'girouette':      [12.1900, -68.9000],
-  'cas grandi':     [12.1300, -68.9800],
+  'rooi catootje':  [12.1247, -68.9055],
+  'boca gentil':    [12.0728, -68.8754],
+  'santa rosa':     [12.1222, -68.8698],
+  'girouette':      [12.1158, -68.8947],
+  'cas grandi':     [12.0964, -68.8531],
 }
 
-// Island bounding box — filter listings that fall in the sea
+// Island bounding box — grove eerste filter. Curaçao is een smal, diagonaal
+// eiland, dus een rechthoekige bbox laat nog altijd veel open zee toe
+// (bevestigd: scraped listings die met geldige-maar-foute coördinaten in zee
+// uitkwamen). Vang dat af met een tweede check hieronder tegen de bekende
+// buurt-centra — die liggen verspreid over het hele bewoonde deel van het
+// eiland, dus een punt dat ver van ALLE buurten ligt, ligt zo goed als zeker
+// in zee.
 const LAT_MIN = 12.01, LAT_MAX = 12.42, LNG_MIN = -69.22, LNG_MAX = -68.75
+
+// Max. afstand (km) die een scraped coördinaat van de dichtstbijzijnde bekende
+// buurt mag liggen om als betrouwbaar te gelden. Gekalibreerd op de werkelijke
+// spreiding van NB hierboven (grootste onderlinge afstand tussen naburige
+// buurten is ~6,4 km, bv. westpunt/lagun/blue bay/sta maria/soto aan de
+// uiteinden) plus wat marge voor een woning die net buiten een buurtcentrum ligt.
+const MAX_KM_FROM_KNOWN_AREA = 8
 
 function jitter(d) { return (Math.random() - 0.5) * d }
 
+function haversineKm(a, b) {
+  const R = 6371
+  const toRad = (d) => (d * Math.PI) / 180
+  const [lat1, lon1] = a, [lat2, lon2] = b
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1)
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
+
+const NB_CENTERS = Object.values(NB)
+
+function nearestKnownAreaKm(coord) {
+  let min = Infinity
+  for (const c of NB_CENTERS) {
+    const d = haversineKm(coord, c)
+    if (d < min) min = d
+  }
+  return min
+}
+
 function getCoords(listing) {
+  const nb = (listing.neighborhood || listing.address || '').toLowerCase()
+  const nbMatch = Object.entries(NB).find(([k]) => nb.includes(k))
+
   if (listing.latitude && listing.longitude) {
     const lat = Number(listing.latitude), lng = Number(listing.longitude)
     if (lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX) {
-      return [lat, lng]
+      if (nearestKnownAreaKm([lat, lng]) <= MAX_KM_FROM_KNOWN_AREA) {
+        return [lat, lng]
+      }
+      // Coördinaat ligt binnen de bbox maar te ver van elke bekende buurt —
+      // vermoedelijk een foute/gegokte geocode uit de bronsite die in zee
+      // uitkomt. Val terug op de buurtnaam als die bekend is; anders liever
+      // helemaal geen pin tonen dan een pin in zee.
     }
   }
-  const nb = (listing.neighborhood || listing.address || '').toLowerCase()
-  for (const [k, c] of Object.entries(NB)) {
-    if (nb.includes(k)) return [c[0] + jitter(0.003), c[1] + jitter(0.003)]
+  if (nbMatch) {
+    const [, c] = nbMatch
+    return [c[0] + jitter(0.003), c[1] + jitter(0.003)]
   }
   return null
 }
