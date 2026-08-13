@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   MagnifyingGlass, Heart, List, X, ArrowRight,
-  House, MapTrifold, UserCircle, SignOut, User, CaretDown, Cube, Globe,
+  House, UserCircle, SignOut, User, CaretDown, Cube, Globe,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
@@ -93,12 +93,12 @@ export default function Navigation() {
 
           {/* Right actions */}
           <div className="hidden md:flex items-center gap-2 shrink-0">
-            <Link to="/kaart"
-              style={{ color: location.pathname === '/kaart' ? TEAL : (onDark ? 'rgba(255,255,255,0.85)' : undefined) }}
+            <a href="https://curacao.lazylizardai.com" target="_blank" rel="noopener noreferrer"
+              style={{ color: onDark ? 'rgba(255,255,255,0.85)' : undefined }}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${onDark ? 'hover:bg-white/10' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'}`}>
-              <Globe size={16} weight={location.pathname === '/kaart' ? 'fill' : 'regular'} style={{ color: TEAL }} />
+              <Globe size={16} weight="regular" style={{ color: TEAL }} />
               3D kaart
-            </Link>
+            </a>
             <Link to="/makelaars"
               style={{
                 background: location.pathname === '/makelaars'
@@ -182,13 +182,20 @@ export default function Navigation() {
                 { to: '/', label: 'Home', icon: House },
                 { to: '/search', label: 'Zoeken', icon: MagnifyingGlass },
                 { to: '/favorites', label: 'Bewaard', icon: Heart },
-                { to: '/kaart', label: 'Kaartoverzicht', icon: MapTrifold },
+                { href: 'https://curacao.lazylizardai.com', label: '3D kaart', icon: Globe },
                 { to: '/makelaars', label: 'Voor makelaars', icon: Cube, gold: true },
-              ].map(({ to, label, icon: Icon, gold }) => (
-                <Link key={label} to={to}
-                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors">
-                  <Icon size={18} weight={gold ? 'fill' : 'regular'} style={{ color: gold ? '#D4A24C' : TEAL }} /> {label}
-                </Link>
+              ].map(({ to, href, label, icon: Icon, gold }) => (
+                href ? (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors">
+                    <Icon size={18} weight={gold ? 'fill' : 'regular'} style={{ color: gold ? '#D4A24C' : TEAL }} /> {label}
+                  </a>
+                ) : (
+                  <Link key={label} to={to}
+                    className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors">
+                    <Icon size={18} weight={gold ? 'fill' : 'regular'} style={{ color: gold ? '#D4A24C' : TEAL }} /> {label}
+                  </Link>
+                )
               ))}
               <div className="pt-2 border-t border-zinc-100">
                 {user ? (

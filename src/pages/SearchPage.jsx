@@ -245,7 +245,7 @@ export default function SearchPage() {
               {icon} {label}
             </button>
           ))}
-          <button onClick={() => navigate('/kaart')} aria-label="Open de 3D-kaart van Curaçao"
+          <button onClick={() => window.open('https://curacao.lazylizardai.com', '_blank', 'noopener')} aria-label="Open de 3D-kaart van Curaçao"
             style={{ color: TEAL, fontWeight: 600, transition: 'background-color 0.15s ease, color 0.15s ease' }}
             className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs hover:bg-white">
             <Globe size={14} weight="fill" /> 3D

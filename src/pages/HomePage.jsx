@@ -494,10 +494,10 @@ export default function HomePage() {
                 className="px-8 py-4 rounded-xl text-base hover:opacity-90 transition-opacity">
                 Open kaartoverzicht <ArrowRight size={16} weight="bold" />
               </Link>
-              <Link to="/kaart" style={{ background: 'transparent', color: 'white', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.7)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+              <a href="https://curacao.lazylizardai.com" target="_blank" rel="noopener noreferrer" style={{ background: 'transparent', color: 'white', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.7)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
                 className="px-8 py-4 rounded-xl text-base hover:bg-white/10 transition-colors">
                 <Globe size={17} weight="fill" /> Bekijk in 3D
-              </Link>
+              </a>
             </div>
           </motion.div>
         </div>
