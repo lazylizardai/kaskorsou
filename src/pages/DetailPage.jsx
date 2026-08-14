@@ -3,12 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, ArrowRight, ArrowSquareOut, Heart, ShareNetwork, Bed, Bathtub, ArrowsOut,
   MapPin, Calendar, Buildings, Phone, Envelope, Storefront, ClockCounterClockwise,
-  CaretLeft, CaretRight, X, CheckCircle, Cube, Image, Play,
+  CaretLeft, CaretRight, X, CheckCircle, Cube, Image, Play, HandGrabbing,
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getListingById } from '../lib/supabase'
 import { hasActiveScan, buildScanEmbedUrl } from '../lib/scan'
 import { hasVideoTour, buildVideoStreamUrl } from '../lib/video'
+import { hasWalkthrough } from '../lib/walkthrough'
+import WalkthroughViewer from '../components/WalkthroughViewer'
 import { useAuth } from '../context/AuthContext'
 import AuthModal from '../components/AuthModal'
 import MapView from '../components/MapView'
@@ -34,8 +36,8 @@ function prettifySourceId(sourceId) {
   return sourceId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
-function TourSection({ listing, hasScan, hasVideo }) {
-  const [tab, setTab] = useState(hasScan ? 'tour' : hasVideo ? 'video' : 'photos')
+function TourSection({ listing, hasScan, hasVideo, hasWalk }) {
+  const [tab, setTab] = useState(hasScan ? 'tour' : hasWalk ? 'walk' : hasVideo ? 'video' : 'photos')
   const embedUrl = buildScanEmbedUrl(listing.scan_url)
   const hasTour = !!embedUrl
 
@@ -75,6 +77,22 @@ function TourSection({ listing, hasScan, hasVideo }) {
             <Play size={13} weight="fill" />Video Tour
           </button>
         )}
+        {hasWalk && (
+          <button onClick={() => setTab('walk')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
+              borderRadius: 999, fontSize: 13, fontWeight: 600,
+              background: tab === 'walk'
+                ? 'linear-gradient(135deg, #F0805A 0%, #E8672A 50%, #C24F1B 100%)'
+                : '#F4F4F5',
+              color: tab === 'walk' ? 'white' : '#52525B',
+              border: tab === 'walk' ? `1px solid ${CORAL}` : '1px solid #E4E4E7',
+              boxShadow: tab === 'walk' ? '0 2px 8px rgba(232,103,42,0.30)' : 'none',
+              transition: 'background-color 0.15s, color 0.15s, border-color 0.15s',
+            }}>
+            <HandGrabbing size={13} weight="fill" />Bezichtiging
+          </button>
+        )}
         <button onClick={() => setTab('photos')}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
@@ -96,9 +114,16 @@ function TourSection({ listing, hasScan, hasVideo }) {
             AI-gegenereerde cinematische video, geen live 3D-scan
           </span>
         )}
+        {tab === 'walk' && (
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#A1A1AA', alignSelf: 'center' }}>
+            Sleep zelf door het huis — beelden uit de foto's van de makelaar
+          </span>
+        )}
       </div>
 
-      {tab === 'tour' && hasTour ? (
+      {tab === 'walk' && hasWalk ? (
+        <WalkthroughViewer listing={listing} />
+      ) : tab === 'tour' && hasTour ? (
         <div className="h-[300px] md:h-[520px]" style={{
           position: 'relative', borderRadius: 16, overflow: 'hidden',
           boxShadow: `0 0 0 1.5px ${GOLD}, 0 12px 36px rgba(212,162,76,0.20)`,
@@ -131,10 +156,12 @@ function TourSection({ listing, hasScan, hasVideo }) {
           3D Tour wordt binnenkort toegevoegd
         </div>
       ) : tab === 'video' && hasVideo ? (
-        <div className="h-[300px] md:h-[520px]" style={{
+        <div style={{
           position: 'relative', borderRadius: 16, overflow: 'hidden',
           boxShadow: `0 0 0 1.5px ${CORAL}, 0 12px 36px rgba(232,103,42,0.20)`,
           background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          // De AI-tour is verticaal (1080x1920) — doos meeschalen i.p.v. zwarte balken
+          aspectRatio: '9 / 16', width: '100%', maxWidth: 420, margin: '0 auto',
         }}>
           <video
             key={listing.video_url}
@@ -142,7 +169,7 @@ function TourSection({ listing, hasScan, hasVideo }) {
             controls
             playsInline
             poster={listing.images?.[0]}
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: '#000' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#000' }}
           />
           <div style={{
             position: 'absolute', top: 12, left: 12, pointerEvents: 'none',
@@ -315,8 +342,8 @@ export default function DetailPage() {
         </button>
 
         {/* Tour of gallery */}
-        {(hasActiveScan(listing) || hasVideoTour(listing))
-          ? <TourSection listing={listing} hasScan={hasActiveScan(listing)} hasVideo={hasVideoTour(listing)} />
+        {(hasActiveScan(listing) || hasVideoTour(listing) || hasWalkthrough(listing))
+          ? <TourSection listing={listing} hasScan={hasActiveScan(listing)} hasVideo={hasVideoTour(listing)} hasWalk={hasWalkthrough(listing)} />
           : <Gallery images={listing.images} />}
 
         {/* Content grid */}
