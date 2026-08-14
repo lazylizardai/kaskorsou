@@ -9,6 +9,10 @@ import DetailPage from './pages/DetailPage'
 import AccountPage from './pages/AccountPage'
 import FavoritesPage from './pages/FavoritesPage'
 import MakelaarsPage from './pages/MakelaarsPage'
+import VoorwaardenPage from './pages/VoorwaardenPage'
+import PrivacyPage from './pages/PrivacyPage'
+import HoeHetWerktPage from './pages/HoeHetWerktPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 // Lazy: houdt maplibre-gl uit de hoofdbundle
 const Kaart3DPage = lazy(() => import('./pages/Kaart3DPage'))
@@ -37,11 +41,15 @@ export default function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/makelaars" element={<MakelaarsPage />} />
+          <Route path="/voorwaarden" element={<VoorwaardenPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/hoe-het-werkt" element={<HoeHetWerktPage />} />
           <Route path="/kaart" element={
             <Suspense fallback={<KaartLoader />}>
               <Kaart3DPage />
             </Suspense>
           } />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </VideoTourProvider>
       </AuthProvider>

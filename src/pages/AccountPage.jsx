@@ -5,6 +5,7 @@ import { User, EnvelopeSimple, Phone, Heart, SignOut, Check, ArrowLeft } from '@
 import { useAuth } from '../context/AuthContext'
 import { supabase, updateProfile, signOut, getFavorites } from '../lib/supabase'
 import ListingCard from '../components/ListingCard'
+import Footer from '../components/Footer'
 
 const TEAL = '#006B7D'
 
@@ -154,6 +155,7 @@ export default function AccountPage() {
           </motion.div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }

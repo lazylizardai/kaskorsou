@@ -40,7 +40,8 @@ export default function Navigation() {
   const isSearch = location.pathname === '/search'
   const favCount = favoriteIds.size
   // Nav zweeft transparant boven een donkere hero op home + makelaars: tekst moet dan licht zijn
-  const onDark = !scrolled && !isSearch && ['/', '/makelaars'].includes(location.pathname)
+  const onDark = !scrolled && !isSearch
+    && ['/', '/makelaars', '/voorwaarden', '/privacy', '/hoe-het-werkt'].includes(location.pathname)
 
   async function handleSignOut() {
     await signOut()

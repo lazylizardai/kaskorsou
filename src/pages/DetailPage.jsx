@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext'
 import AuthModal from '../components/AuthModal'
 import MapView from '../components/MapView'
 import { formatPrice } from '../lib/currency'
+import Footer from '../components/Footer'
 
 const TEAL = '#006B7D'
 const CORAL = '#E8672A'
@@ -611,6 +612,8 @@ export default function DetailPage() {
         )}
       </div>
     </div>
+
+    <Footer />
 
     {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </>

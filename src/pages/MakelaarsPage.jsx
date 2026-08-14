@@ -643,6 +643,9 @@ export default function MakelaarsPage() {
           </p>
           <div className="flex items-center gap-4 text-xs">
             <Link to="/" style={{ color: 'rgba(255,255,255,0.8)' }}>Naar KasKorsou</Link>
+            <Link to="/hoe-het-werkt" style={{ color: 'rgba(255,255,255,0.8)' }}>Hoe het werkt</Link>
+            <Link to="/voorwaarden" style={{ color: 'rgba(255,255,255,0.8)' }}>Voorwaarden</Link>
+            <Link to="/privacy" style={{ color: 'rgba(255,255,255,0.8)' }}>Privacy</Link>
             <a href="mailto:peter@lazylizardgroup.com" style={{ color: GOLD }}>peter@lazylizardgroup.com</a>
           </div>
         </div>

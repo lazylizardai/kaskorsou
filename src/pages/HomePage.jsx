@@ -6,6 +6,7 @@ import {
   ArrowUpRight, Sparkle, Cube, Globe,
 } from '@phosphor-icons/react'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import Footer from '../components/Footer'
 import { getListings } from '../lib/supabase'
 import { hasActiveScan } from '../lib/scan'
 import { formatPrice } from '../lib/currency'
@@ -503,23 +504,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─────────── FOOTER ─────────── */}
-      <footer style={{ background: '#060D18', borderTop: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.45)', padding: '32px 0' }}>
-        <div className="max-w-[1200px] mx-auto px-5 lg:px-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div style={{ background: TEAL, width: 28, height: 28, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'white', fontWeight: 700, fontSize: 11 }}>K</span>
-            </div>
-            <span style={{ color: 'white', fontWeight: 700, fontSize: 14 }}>KasKòrsou</span>
-          </div>
-          <p className="text-xs">© 2026 KasKòrsou — Curaçao real estate aggregator</p>
-          <div className="flex gap-4 text-xs">
-            <Link to="/search" className="hover:text-white transition-colors">Zoeken</Link>
-            <span>Privacy</span>
-            <span>Voorwaarden</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

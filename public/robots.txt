@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /favorites
+
+Sitemap: https://kaskorsou.lazylizardai.com/sitemap.xml

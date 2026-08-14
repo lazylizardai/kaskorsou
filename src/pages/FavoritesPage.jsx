@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { getFavorites } from '../lib/supabase'
 import ListingCard from '../components/ListingCard'
 import AuthModal from '../components/AuthModal'
+import Footer from '../components/Footer'
 
 const TEAL = '#006B7D'
 
@@ -69,6 +70,7 @@ export default function FavoritesPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }
