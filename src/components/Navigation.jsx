@@ -103,11 +103,11 @@ export default function Navigation() {
               style={{
                 background: location.pathname === '/makelaars'
                   ? 'linear-gradient(135deg, rgba(232,181,71,0.16) 0%, rgba(212,162,76,0.10) 100%)'
-                  : 'transparent',
-                color: location.pathname === '/makelaars' ? (onDark ? '#E8B547' : '#9C6F1E') : (onDark ? 'rgba(255,255,255,0.85)' : '#52525B'),
+                  : undefined,
+                color: location.pathname === '/makelaars' ? (onDark ? '#E8B547' : '#9C6F1E') : (onDark ? 'rgba(255,255,255,0.85)' : undefined),
                 border: location.pathname === '/makelaars' ? '1px solid rgba(212,162,76,0.5)' : '1px solid transparent',
               }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${onDark ? 'hover:bg-white/10' : 'hover:text-zinc-900 hover:bg-zinc-50'}`}>
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${onDark ? 'hover:bg-white/10' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'}`}>
               <Cube size={14} weight="fill" style={{ color: '#D4A24C' }} />
               Voor makelaars
             </Link>
@@ -125,7 +125,7 @@ export default function Navigation() {
             {user ? (
               <div ref={userMenuRef} className="relative">
                 <button onClick={() => setUserMenuOpen(o => !o)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-zinc-200 transition-all">
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-zinc-800 bg-white border border-zinc-200 shadow-sm hover:bg-[#EAF7F9] hover:border-[#9FCFD8] hover:shadow-md transition-all">
                   <UserCircle size={18} style={{ color: TEAL }} />
                   <span className="max-w-[100px] truncate">{user.user_metadata?.full_name?.split(' ')[0] || 'Account'}</span>
                   <CaretDown size={12} style={{ opacity: 0.5 }} />
